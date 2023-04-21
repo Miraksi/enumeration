@@ -1,6 +1,5 @@
-use std::collections::{HashSet, HashMap};
-
 struct Tarjan {
+    scc: Vec<Vec<usize>>,
     maxdfs: u32,
     unchecked: Vec<bool>,
     stack: Vec<usize>,
@@ -13,6 +12,7 @@ struct Tarjan {
 impl Tarjan {
     fn new(n: usize, edges: Vec<Vec<usize>>) -> Self {
         Self{
+            scc: Vec::new(),
             maxdfs: 0,
             unchecked: vec![true;n],
             stack: Vec::new(),
@@ -51,15 +51,18 @@ impl Tarjan {
         }
 
         if self.lowlink[v] == self.dfs[v] {
-            print!("SZK: ");
+            let mut component: Vec<usize> = Vec::new(); 
             let mut w = self.stack.pop().unwrap();
             self.in_stack[w] = false;
             while w != v {
-                print!("{} ", w);
+                component.push(w);
                 w = self.stack.pop().unwrap();
                 self.in_stack[w] = false;
             }
-            println!("{}",w);
+            component.push(w);
+            if component.len() > 1 {
+                self.scc.push(component);
+            }
         }
     }
 }
@@ -71,4 +74,14 @@ fn min(a: u32, b: u32) -> u32 {
     } 
 }
 
-fn main() {}
+fn main() {
+    let mut tran: Vec<Vec<usize>> = Vec::new();
+    tran.push(vec![1,2]);
+    tran.push(vec![0,2]);
+    tran.push(vec![0,1,3]);
+    tran.push(vec![4]);
+    tran.push(Vec::new()); 
+    let mut test = Tarjan::new(tran.len(), tran);
+    test.execute();
+    println!("{:?}", test.scc);
+}
