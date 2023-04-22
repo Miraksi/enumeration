@@ -1,4 +1,4 @@
-struct Tarjan {
+pub struct Tarjan<'a> {
     scc: Vec<Vec<usize>>,
     maxdfs: u32,
     unchecked: Vec<bool>,
@@ -6,11 +6,11 @@ struct Tarjan {
     in_stack: Vec<bool>,
     lowlink: Vec<u32>,
     dfs: Vec<u32>,
-    edges: Vec<Vec<usize>>,
+    edges: &'a Vec<Vec<usize>>,
 }
 
-impl Tarjan {
-    fn new(edges: Vec<Vec<usize>>) -> Self {
+impl<'a> Tarjan<'a> {
+    pub fn new(edges: &'a Vec<Vec<usize>>) -> Self {
         let n = edges.len();    // assumes that every node has an entry in edges
         Self{
             scc: Vec::new(),
@@ -24,15 +24,16 @@ impl Tarjan {
         }
     }
 
-    fn execute(&mut self) {
+    pub fn tarjan(&mut self) -> Vec<Vec<usize>> {
         for i in 0..self.unchecked.len() {
             if self.unchecked[i] {
-                self.tarjan(i);
+                self.execute(i);
             }
         }
+        return self.scc.clone();
     }
 
-    fn tarjan(&mut self, v: usize) {
+    fn execute(&mut self, v: usize) {
         self.dfs[v] = self.maxdfs;
         self.lowlink[v] = self.maxdfs;
         self.maxdfs += 1;
@@ -43,7 +44,7 @@ impl Tarjan {
         for i in 0..self.edges[v].len() {
             let w = self.edges[v][i];
             if self.unchecked[w] {
-                self.tarjan(w);
+                self.execute(w);
                 self.lowlink[v] = min(self.lowlink[v], self.lowlink[w]);
             }
             else if self.in_stack[w] {
@@ -82,7 +83,7 @@ fn main() {
     tran.push(vec![0,1,3]);
     tran.push(vec![4]);
     tran.push(Vec::new()); 
-    let mut test = Tarjan::new(tran);
-    test.execute();
-    println!("{:?}", test.scc);
+    let test = Tarjan::new(&tran).tarjan();
+    println!("{:?}", tran);
+    println!("{:?}", test);
 }
