@@ -10,7 +10,8 @@ struct Tarjan {
 }
 
 impl Tarjan {
-    fn new(n: usize, edges: Vec<Vec<usize>>) -> Self {
+    fn new(edges: Vec<Vec<usize>>) -> Self {
+        let n = edges.len();    // assumes that every node has an entry in edges
         Self{
             scc: Vec::new(),
             maxdfs: 0,
@@ -81,7 +82,7 @@ fn main() {
     tran.push(vec![0,1,3]);
     tran.push(vec![4]);
     tran.push(Vec::new()); 
-    let mut test = Tarjan::new(tran.len(), tran);
+    let mut test = Tarjan::new(tran);
     test.execute();
     println!("{:?}", test.scc);
 }
