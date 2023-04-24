@@ -1,5 +1,5 @@
 use tarjan::Tarjan;
-use rdxsort::*;
+use rdxsort::*; //TODO test if its actually fast
 use std::collections::HashMap;
 
 mod tarjan;
@@ -14,7 +14,7 @@ enum Color {
 
 pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char,u32)>> { //Lq
     let edges = compute_edge_list(&delta);
-    let pi = compute_longest_path(&edges);
+    let pi = compute_pi(&edges);
     let mut triple_list: Vec<(u32, char, usize)> = Vec::new(); // (pi(q'), a, q) instead of (q, pi(q'), a)
     for q in 0..delta.len() {
         for (a, q_next) in delta[q].iter() {
@@ -39,7 +39,7 @@ fn compute_edge_list(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<usize>> {
     return edges;
 }
 
-fn compute_longest_path(edges: &Vec<Vec<usize>>) -> Vec<u32> {
+fn compute_pi(edges: &Vec<Vec<usize>>) -> Vec<u32> {
     let n = edges.len();
     let rev_edges = reverse_edges(edges);
     let mut color = vec![Color::WHITE;n];
@@ -80,7 +80,7 @@ fn compute_longest_path(edges: &Vec<Vec<usize>>) -> Vec<u32> {
     return pi;
 }
 
-fn reverse_edges(edges: &Vec<Vec<usize>>) -> Vec<Vec<usize>>{
+fn reverse_edges(edges: &Vec<Vec<usize>>) -> Vec<Vec<usize>>{   // TODO outsource to graph_alg.rs
     let mut rev_edges: Vec<Vec<usize>> = vec![Vec::new(); edges.len()];
 
     for u in 0..edges.len() {
@@ -159,6 +159,6 @@ fn main() {
     tran.push(vec![5,3]);
     tran.push(Vec::new()); 
 
-    let pi = compute_longest_path(&tran);
+    let pi = compute_pi(&tran);
     println!("{:?}", pi);
 }
