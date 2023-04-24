@@ -1,4 +1,6 @@
 use tarjan::Tarjan;
+use rdxsort::*;
+use std::collections::HashMap;
 
 mod tarjan;
 
@@ -10,11 +12,31 @@ enum Color {
     RED,
 }
 
-fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char,u32)>> { //Lq
-    let edges = compute_edge_list(delta);
-    let pi = compute_longest_path(edges);
-    let triple_list: Vec<(usize, u32, char)> = Vec::new();
-    //TODO radix
+pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char,u32)>> { //Lq
+    let edges = compute_edge_list(&delta);
+    let pi = compute_longest_path(&edges);
+    let mut triple_list: Vec<(u32, char, usize)> = Vec::new(); // (pi(q'), a, q) instead of (q, pi(q'), a)
+    for q in 0..delta.len() {
+        for (a, q_next) in delta[q].iter() {
+            triple_list.push((pi[*q_next], *a, q));
+        }
+    }
+    triple_list.rdxsort();
+    let mut longest_pairs: Vec<Vec<(char,u32)>> = vec![Vec::new(); delta.len()];
+    for (length, a, q) in triple_list.iter().rev() {
+        longest_pairs[*q].push((*a, length + 1));
+    }
+    return longest_pairs;
+}
+
+fn compute_edge_list(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<usize>> {
+    let mut edges: Vec<Vec<usize>> = vec![Vec::new(); delta.len()];
+    for p in 0..delta.len() {
+        for (_a, q) in delta[p].iter() {
+            edges[p].push(*q);
+        }
+    }
+    return edges;
 }
 
 fn compute_longest_path(edges: &Vec<Vec<usize>>) -> Vec<u32> {
@@ -83,7 +105,7 @@ fn compute_acyclic_graph(edges: &Vec<Vec<usize>>, color: &Vec<Color>) -> Vec<Vec
     return acyc_edges;
 }
 
-//Topsort form teamreferences
+//Topsort from teamreferences
 struct Topsort<'a> {
     edges: &'a Vec<Vec<usize>>,
     used: Vec<bool>,
