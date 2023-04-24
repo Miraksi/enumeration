@@ -7,7 +7,7 @@ fn main() {
     let mut v: Vec<HashMap<char, usize>> = Vec::new();
     let mut tmp = HashMap::new();
     tmp.insert('a', 0);
-    tmp.insert('b', 1)
+    tmp.insert('b', 1);
     v.push(tmp);
     tmp = HashMap::new();
     tmp.insert('a', 2);
