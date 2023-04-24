@@ -1,0 +1,142 @@
+use tarjan::Tarjan;
+
+mod tarjan;
+
+const INFTY: u32 = 4294967295;
+
+#[derive(Clone, PartialEq)] // needed for list-comprehension and == operator
+enum Color {
+    WHITE,
+    RED,
+}
+
+fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char,u32)>> { //Lq
+    let edges = compute_edge_list(delta);
+    let pi = compute_longest_path(edges);
+    let triple_list: Vec<(usize, u32, char)> = Vec::new();
+    //TODO radix
+}
+
+fn compute_longest_path(edges: &Vec<Vec<usize>>) -> Vec<u32> {
+    let n = edges.len();
+    let rev_edges = reverse_edges(edges);
+    let mut color = vec![Color::WHITE;n];
+    let connected = Tarjan::new(edges).tarjan();
+    let mut queue: Vec<usize> = Vec::new();
+    let mut pi: Vec<u32> = vec![0;n];
+
+    for list in connected.iter() {
+        for node in list.iter() {
+            color[*node] = Color::RED;
+            queue.push(*node);
+        }
+    }
+    while !queue.is_empty() {
+        let p = queue.pop().unwrap();
+        pi[p] = INFTY;
+
+        for &s in rev_edges[p].iter() {
+            if color[s] == Color::WHITE  {
+                color[s] = Color::RED; // has to be checked
+                queue.push(s);
+            }
+        }
+    }
+
+    let acyc_edges = compute_acyclic_graph(edges, &color);
+    let topsort = Topsort::new(&acyc_edges).reverse_topsort();
+    let rev_edges = reverse_edges(&acyc_edges);
+
+    for u in topsort {
+        if color[u] == Color::WHITE {
+            for v in rev_edges[u].iter() {
+                pi[*v] = max(pi[*v], pi[u] + 1);
+            }
+        }
+    }
+    // Test
+    return pi;
+}
+
+fn reverse_edges(edges: &Vec<Vec<usize>>) -> Vec<Vec<usize>>{
+    let mut rev_edges: Vec<Vec<usize>> = vec![Vec::new(); edges.len()];
+
+    for u in 0..edges.len() {
+        for v in edges[u].iter() {
+            rev_edges[*v].push(u);
+        }
+    }
+    return rev_edges;
+}
+
+fn compute_acyclic_graph(edges: &Vec<Vec<usize>>, color: &Vec<Color>) -> Vec<Vec<usize>> {
+    let mut acyc_edges: Vec<Vec<usize>> = vec![Vec::new();edges.len()];
+    for u in 0..edges.len() {
+        if color[u] == Color::WHITE {
+            for v in edges[u].iter() {
+                if color[*v] == Color::WHITE {
+                    acyc_edges[u].push(*v);
+                }
+            }
+        } 
+    }
+    return acyc_edges;
+}
+
+//Topsort form teamreferences
+struct Topsort<'a> {
+    edges: &'a Vec<Vec<usize>>,
+    used: Vec<bool>,
+    topsort: Vec<usize>,
+}
+
+impl <'a> Topsort<'a> {
+    fn new(edges: &'a Vec<Vec<usize>>) -> Self {
+        let n = edges.len();
+        Self {
+            edges: edges,
+            used: vec![false;n],
+            topsort: Vec::new(),
+        }
+    }
+    fn reverse_topsort(&mut self) -> Vec<usize> {    
+        let n = self.edges.len();
+        for i in 0..n {
+            if !self.used[i] {
+                self.dfs_topsort(i);
+            }
+        }
+        return self.topsort.clone();
+    }
+    fn dfs_topsort(&mut self, v: usize) {
+        self.used[v] = true;
+        for u in self.edges[v].iter() {
+            if !self.used[*u] {
+                self.dfs_topsort(*u);
+            }
+        }
+        self.topsort.push(v);
+    }
+    
+}
+
+fn max(a: u32, b: u32) -> u32 {
+    match a < b {
+        true => b,
+        false => a,
+    }
+}
+
+
+fn main() {
+    let mut tran: Vec<Vec<usize>> = Vec::new();
+    tran.push(vec![4]);
+    tran.push(vec![5]);
+    tran.push(Vec::new());
+    tran.push(vec![0]);
+    tran.push(vec![5,3]);
+    tran.push(Vec::new()); 
+
+    let pi = compute_longest_path(&tran);
+    println!("{:?}", pi);
+}
