@@ -8,9 +8,10 @@ struct RMQ {
     k: u32,
     block_min: Vec<u32>,
     sparse_table: Vec<Vec<u32>>,
-    bucket_rmq: Vec<Vec<Vec<usize>>>,
+    block_rmq: Vec<Vec<Vec<usize>>>,
 }
 // TODO change other constuctors
+// TODO k should be usize
 impl RMQ {
     fn new(input: Vec<u32>) -> Self {
         let n = input.len() as u32;
@@ -21,11 +22,11 @@ impl RMQ {
             k: k,
             block_min: Vec::new(),
             sparse_table: vec![Vec::new();log_floor(n) as usize],
-            bucket_rmq: Vec::new(),
+            block_rmq: Vec::new(),
         };
         new.calc_block_min();
         new.build_sparse();
-        new.fill_bucket_rmq();
+        new.fill_block_rmq();
         return new;
     }
     fn calc_block_min(&mut self) {
@@ -62,17 +63,34 @@ impl RMQ {
         }
     }
 
-    fn get(&self, l: u32, r: u32) -> u32 {
-        let loglen = log_floor(r-l+1) as usize;
+    fn get(&self, l: usize, r: usize) -> u32 {
+        let block_l = l/(self.k as usize);
+        let block_r = r/(self.k as usize);
+        match block_l - block_r {
+            0 => return self.get_in_block(block_l, l, r),
+            1 => return 0;
+            _ => return 0;
+        }
+        return 0; //TODO
+    }
+
+    fn get_on_blocks(&self, l: usize, r: usize) -> u32 {
+        let loglen = log_floor((r-l+1) as u32) as usize;
         let idx: usize = ((r as i64) - (1 << loglen as i64) + 1) as usize;
         return min(self.sparse_table[loglen][l as usize], self.sparse_table[loglen][idx]);
     }
 
-    fn fill_bucket_rmq(&mut self) {
+    fn get_in_block(&self, block_idx: usize, l: usize, r: usize) -> u32 {   //TODO change mask type to usize
+        let mask = self.calc_bitmask(block_idx);
+        let min_idx = self.block_rmq[mask as usize][l][r];
+        return self.input[min_idx + block_idx * (self.k as usize)];
+    }
+
+    fn fill_block_rmq(&mut self) {
         let mask_amount = (1 << (self.k - 1)) as usize;
         for mask in 0..mask_amount {
             let tmp = self.rmq_bitmask(mask as u32); // maybe change to usize
-            self.bucket_rmq.push(tmp);
+            self.block_rmq.push(tmp);
         }
     }
 
@@ -97,6 +115,10 @@ impl RMQ {
             }
         }
         return rmq_matrix;
+    }
+
+    fn calc_bitmask(&self, block_idx: usize) -> u32{
+        return 0; //TODO
     }
 }
 
@@ -126,8 +148,8 @@ fn main() {
     let rmq = RMQ::new(vec![0,1,2,1,2,3,4,5,4,5,4,3,2,3,4,5,6,7,8,9,8,7,6,5,7,6,5,6,7,8,9,10,9,8,7,8,7,6,7,6,5,4,3,2,1,2,3,2,1,2,3,4,5,6,7,8,7,6,5,4,3,4,5,6,7,8,7,6,5,4,5,4,3,2,3,4]);
     println!("For k={} Blocks we get the minima={:?}",rmq.k, rmq.block_min);
     println!("sparse_table = {:?}", rmq.sparse_table);
-    println!("min(0,1) = {}", rmq.get(0,1));
-    println!("min(2,6) = {}", rmq.get(2,6));
-    println!("{:?}", rmq.bucket_rmq);
+    println!("min(2,2) = {}", rmq.get_on_blocks(2,2));
+    println!("min(2,6) = {}", rmq.get_on_blocks(2,6));
+    println!("{:?}", rmq.block_rmq);
     println!("{:?}", bitmask_to_array(3,1));
 }
