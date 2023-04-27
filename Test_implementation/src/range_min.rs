@@ -4,7 +4,7 @@ fn log_floor(x: u32) -> u32 {
 
 struct RMQ {
     input: Vec<u32>,
-    n: u32, // TODO maybe change to usize
+    n: usize, 
     k: usize,
     block_min: Vec<u32>,
     sparse_table: Vec<Vec<u32>>,
@@ -12,14 +12,13 @@ struct RMQ {
     block_mask: Vec<u32>,
 }
 // TODO change other constuctors
-// TODO k should be usize
 impl RMQ {
     fn new(input: Vec<u32>) -> Self {
         let n = input.len() as u32;
         let k = log_floor(n)/ 2;        
         let mut new = Self {
             input: input,
-            n: n,
+            n: n as usize,
             k: k as usize,
             block_min: Vec::new(),
             sparse_table: vec![Vec::new();log_floor(n) as usize],
@@ -33,7 +32,7 @@ impl RMQ {
         return new;
     }
     fn calc_block_min(&mut self) {
-        for i in 0..(self.n as usize + self.k -1) / self.k {
+        for i in 0..(self.n + self.k -1) / self.k {
             let min = self.calc_min(i*self.k);
             self.block_min.push(min);
         }
@@ -56,9 +55,8 @@ impl RMQ {
         for x in self.block_min.iter() {
             self.sparse_table[0].push(*x);
         }
-        let n = self.block_min.len();
-        for loglen in 1..(log_floor(n as u32) as usize) {
-            for i in 0..=n - (1 << loglen) {
+        for loglen in 1..(log_floor(self.n as u32) as usize) {
+            for i in 0..=self.n - (1 << loglen) {
                 let a = self.sparse_table[loglen-1][i];
                 let b = self.sparse_table[loglen-1][i + (1 << (loglen - 1))];
                 self.sparse_table[loglen].push(min(a,b));
@@ -71,10 +69,10 @@ impl RMQ {
         let block_r = r/self.k ;
         let l_suffix = self.get_in_block(block_l, l % self.k, self.k - 1);
         let r_prefix = self.get_in_block(block_r, 0, r % self.k);
-        match block_l - block_r {
-            0 => return self.get_in_block(block_l, l, r),
+        match block_r - block_l {
+            0 => return self.get_in_block(block_l, l % self.k, r % self.k),
             1 => return min(l_suffix, r_prefix),
-            _ => return min(min(l_suffix, self.get_on_blocks(l+1, r-1)), r_prefix),
+            _ => return min(min(l_suffix, self.get_on_blocks(block_l+1, block_r-1)), r_prefix),
         };
     }
 
@@ -85,9 +83,9 @@ impl RMQ {
     }
 
     fn get_in_block(&self, block_idx: usize, l: usize, r: usize) -> u32 {  
-        let mask = self.calc_bitmask(block_idx);
+        let mask = self.block_mask[block_idx];
         let min_idx = self.block_rmq[mask as usize][l][r];
-        return self.input[min_idx + block_idx * (self.k as usize)];
+        return self.input[min_idx + block_idx * self.k];
     }
 
     fn fill_block_rmq(&mut self) {
@@ -121,7 +119,9 @@ impl RMQ {
     }
 
     fn precompute_masks(&mut self) {
-
+        for i in 0..self.block_min.len() {
+            self.block_mask.push(self.calc_bitmask(i));
+        }
     }
 
     // we initialize the mask with k-1 ones
@@ -130,7 +130,6 @@ impl RMQ {
         let mut mask: u32 = (1 << (self.k - 1)) - 1;  
         for i in self.k*block_idx + 1..self.k * (block_idx + 1) {
             let last = self.input[i-1];
-            println!("exponent {}", self.k-(i % self.k));
             match self.input.get(i) {
                 Some(&x) => {
                     if last > x {
@@ -173,5 +172,5 @@ fn main() {
     println!("min(2,2) = {}", rmq.get_on_blocks(2,2));
     println!("min(2,6) = {}", rmq.get_on_blocks(2,6));
     println!("{:?}", rmq.block_rmq);
-    println!("calc_bitmask(2) {:?}", rmq.calc_bitmask(2));
+    println!("get(0,4) {:?}", rmq.get(4,44));
 }
