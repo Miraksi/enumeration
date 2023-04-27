@@ -4,8 +4,8 @@ fn log_floor(x: u32) -> u32 {
 
 struct RMQ {
     input: Vec<u32>,
-    n: u32,
-    k: u32,
+    n: u32, // TODO maybe change to usize
+    k: usize,
     block_min: Vec<u32>,
     sparse_table: Vec<Vec<u32>>,
     block_rmq: Vec<Vec<Vec<usize>>>,
@@ -19,7 +19,7 @@ impl RMQ {
         let mut new = Self {
             input: input,
             n: n,
-            k: k,
+            k: k as usize,
             block_min: Vec::new(),
             sparse_table: vec![Vec::new();log_floor(n) as usize],
             block_rmq: Vec::new(),
@@ -30,16 +30,16 @@ impl RMQ {
         return new;
     }
     fn calc_block_min(&mut self) {
-        for i in 0..(self.n + self.k -1) / self.k {
+        for i in 0..(self.n as usize + self.k -1) / self.k {
             let min = self.calc_min(i*self.k);
             self.block_min.push(min);
         }
     }
 
-    fn calc_min(&mut self, i: u32) -> u32{
+    fn calc_min(&mut self, i: usize) -> u32{
         let mut current_min = u32::MAX;
         for j in i..i + self.k {
-            match self.input.get(j as usize) {
+            match self.input.get(j) {
                 Some(x) => current_min = min(current_min, *x),
                 None => {
                     return current_min;
@@ -64,14 +64,15 @@ impl RMQ {
     }
 
     fn get(&self, l: usize, r: usize) -> u32 {
-        let block_l = l/(self.k as usize);
-        let block_r = r/(self.k as usize);
+        let block_l = l/self.k ;
+        let block_r = r/self.k ;
+        let l_suffix = self.get_in_block(block_l, l % self.k, self.k - 1);
+        let r_prefix = self.get_in_block(block_r, 0, r % self.k);
         match block_l - block_r {
             0 => return self.get_in_block(block_l, l, r),
-            1 => return 0;
-            _ => return 0;
-        }
-        return 0; //TODO
+            1 => return min(l_suffix, r_prefix),
+            _ => return min(min(l_suffix, self.get_on_blocks(l+1, r-1)), r_prefix),
+        };
     }
 
     fn get_on_blocks(&self, l: usize, r: usize) -> u32 {
@@ -87,7 +88,7 @@ impl RMQ {
     }
 
     fn fill_block_rmq(&mut self) {
-        let mask_amount = (1 << (self.k - 1)) as usize;
+        let mask_amount = 1 << (self.k - 1);
         for mask in 0..mask_amount {
             let tmp = self.rmq_bitmask(mask as u32); // maybe change to usize
             self.block_rmq.push(tmp);
@@ -95,11 +96,10 @@ impl RMQ {
     }
 
     fn rmq_bitmask(&mut self, mask: u32) -> Vec<Vec<usize>> {  
-        let k: usize = self.k as usize;
-        let mut rmq_matrix: Vec<Vec<usize>> = vec![vec![0;k]; k];
-        let list = bitmask_to_array(self.k as usize, mask);
-        for i in 0..k {
-            for j in i..k {
+        let mut rmq_matrix: Vec<Vec<usize>> = vec![vec![0;self.k]; self.k];
+        let list = bitmask_to_array(self.k, mask);
+        for i in 0..self.k {
+            for j in i..self.k {
                 if i == j {
                     rmq_matrix[i][j] = i;
                 }
