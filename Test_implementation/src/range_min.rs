@@ -9,6 +9,7 @@ struct RMQ {
     block_min: Vec<u32>,
     sparse_table: Vec<Vec<u32>>,
     block_rmq: Vec<Vec<Vec<usize>>>,
+    block_mask: Vec<u32>,
 }
 // TODO change other constuctors
 // TODO k should be usize
@@ -23,10 +24,12 @@ impl RMQ {
             block_min: Vec::new(),
             sparse_table: vec![Vec::new();log_floor(n) as usize],
             block_rmq: Vec::new(),
+            block_mask: Vec::new(),
         };
         new.calc_block_min();
         new.build_sparse();
         new.fill_block_rmq();
+        new.precompute_masks();
         return new;
     }
     fn calc_block_min(&mut self) {
@@ -81,7 +84,7 @@ impl RMQ {
         return min(self.sparse_table[loglen][l as usize], self.sparse_table[loglen][idx]);
     }
 
-    fn get_in_block(&self, block_idx: usize, l: usize, r: usize) -> u32 {   //TODO change mask type to usize
+    fn get_in_block(&self, block_idx: usize, l: usize, r: usize) -> u32 {  
         let mask = self.calc_bitmask(block_idx);
         let min_idx = self.block_rmq[mask as usize][l][r];
         return self.input[min_idx + block_idx * (self.k as usize)];
@@ -117,8 +120,26 @@ impl RMQ {
         return rmq_matrix;
     }
 
+    fn precompute_masks(&mut self) {
+
+    }
+
+    // we initialize the mask with k-1 ones
+    // this is necessary so if blocks are of size < k the bitmask is still correct
     fn calc_bitmask(&self, block_idx: usize) -> u32{
-        return 0; //TODO
+        let mut mask: u32 = (1 << (self.k - 1)) - 1;  
+        for i in self.k*block_idx + 1..self.k * (block_idx + 1) {
+            let last = self.input[i-1];
+            match self.input.get(i) {
+                Some(&x) => {
+                    if last > x {
+                        mask -= 1 << (self.k-(i % self.k));
+                    }
+                },
+                None => break,
+            };
+        }                                
+        return mask;
     }
 }
 
@@ -151,5 +172,5 @@ fn main() {
     println!("min(2,2) = {}", rmq.get_on_blocks(2,2));
     println!("min(2,6) = {}", rmq.get_on_blocks(2,6));
     println!("{:?}", rmq.block_rmq);
-    println!("{:?}", bitmask_to_array(3,1));
+    println!("calc_bitmask(1) {:?}", rmq.calc_bitmask(1));
 }
