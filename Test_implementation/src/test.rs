@@ -1,5 +1,7 @@
 use std::collections::{HashSet, HashMap};
 
 fn main() {
-    println!("{:?}", [1;4]);
+    let mut list: Vec<u32> = vec![2,3,4,5,6,7];
+    list.reverse();
+    println!("{:?}", list);
 }

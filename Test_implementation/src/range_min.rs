@@ -130,10 +130,11 @@ impl RMQ {
         let mut mask: u32 = (1 << (self.k - 1)) - 1;  
         for i in self.k*block_idx + 1..self.k * (block_idx + 1) {
             let last = self.input[i-1];
+            println!("exponent {}", self.k-(i % self.k));
             match self.input.get(i) {
                 Some(&x) => {
                     if last > x {
-                        mask -= 1 << (self.k-(i % self.k));
+                        mask -= 1 << (self.k-1-(i % self.k));
                     }
                 },
                 None => break,
@@ -172,5 +173,5 @@ fn main() {
     println!("min(2,2) = {}", rmq.get_on_blocks(2,2));
     println!("min(2,6) = {}", rmq.get_on_blocks(2,6));
     println!("{:?}", rmq.block_rmq);
-    println!("calc_bitmask(1) {:?}", rmq.calc_bitmask(1));
+    println!("calc_bitmask(2) {:?}", rmq.calc_bitmask(2));
 }
