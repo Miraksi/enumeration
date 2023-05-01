@@ -28,6 +28,7 @@ impl Node {
 // pub only for debugging purposes
 pub struct Ladders {
     pub n: usize,
+    pub k: usize,
     pub root: usize,
     pub nodes: Vec<Node>,
     pub ladders: Vec<Vec<usize>>,        // ladders are in reverse order // pub for testing
@@ -42,13 +43,16 @@ pub struct Ladders {
 impl Ladders {
     pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
         let n = parent.len();
+        let k = (log_floor(n as u32)/4) as usize;
         let nodes = compute_node_list(&parent, children);
         let mut new = Self {
             n: n,
+            k: k,
             root: root,
             nodes: nodes,
             ladders: Vec::new(),
             leaf_depth: Vec::new(),
+
             jump_nodes: Vec::new(),
             jump_points: HashMap::new(),
         };
@@ -107,24 +111,23 @@ impl Ladders {
     }
 
     fn compute_jump_points(&mut self) {
-        let bound = (log_floor(self.n as u32)/4) as usize;
-        self.find_jump_nodes(self.root, bound); 
+        self.find_jump_nodes(self.root); 
         
         for i in 0..self.jump_nodes.len() {
             self.compute_jumps(self.jump_nodes[i]);
         }
     }
 
-    fn find_jump_nodes(&mut self, root: usize, boundary: usize) -> usize{
+    fn find_jump_nodes(&mut self, root: usize) -> usize{
         let mut decendants = self.nodes[root].children.len();
         let mut child_decendants: usize = 0;
         for i in 0..self.nodes[root].children.len() {
             let child = self.ith_child(root, i);
-            let tmp = self.find_jump_nodes(child, boundary);
+            let tmp = self.find_jump_nodes(child);
             decendants += tmp;
             child_decendants = max(child_decendants, tmp);
         }
-        if decendants >= boundary && child_decendants < boundary {
+        if decendants >= self.k && child_decendants < self.k {
             self.jump_nodes.push(root);
         }
         return decendants;
