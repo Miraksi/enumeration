@@ -25,14 +25,15 @@ impl Node {
 }
 
 // we maybe need lifetimes here
+// pub only for debugging purposes
 pub struct Ladders {
-    n: usize,
-    root: usize,
-    nodes: Vec<Node>,
+    pub n: usize,
+    pub root: usize,
+    pub nodes: Vec<Node>,
     pub ladders: Vec<Vec<usize>>,        // ladders are in reverse order // pub for testing
     pub leaf_depth: Vec<(usize, usize)>, // (depth of leaf, index of leaf) // pub for testing
-    jump_nodes: Vec<usize>,         // stores all jump_nodes (leaves of the macrotree)
-    jump_points: HashMap<usize, Vec<usize>>,    // stores all the jumppoints for a jump node
+    pub jump_nodes: Vec<usize>,         // stores all jump_nodes (leaves of the macrotree)
+    pub jump_points: HashMap<usize, Vec<usize>>,    // stores all the jumppoints for a jump node
                                                 // we are allowed to stor this in a HashMap, 
                                                 // since inserting will still work in O(n) 
                                                 // (n beeing the number of nodes)
@@ -136,7 +137,10 @@ impl Ladders {
         let mut jump_size: usize = 1;
         while jump_size*2 < self.n {
             let ladder_idx = self.nodes[current].ladder_idx;
-            current = self.ladders[self.ladder_of(current)][ladder_idx + jump_size]; // maybe make this a function
+            current = match self.ladders[self.ladder_of(current)].get(ladder_idx + jump_size) {
+                Some(x) => *x,
+                None => 0,  // None should only happen if we would jump to 0
+            }; // maybe make this a function
             jumps.push(current);
             jump_size *= 2;
         }
