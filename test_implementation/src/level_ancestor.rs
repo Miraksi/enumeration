@@ -6,8 +6,8 @@ use std::slice::Iter;
 fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
     return u32::BITS - x.leading_zeros() - 1;
 }
-
-struct Node {
+#[derive(Debug)]
+pub struct Node {
     parent: usize,
     children: Vec<usize>,
     ladder: usize,
@@ -60,7 +60,6 @@ impl Ladders {
         self.dfs_depth(self.root, 0);
         self.leaf_depth.rdxsort();
         self.leaf_depth.reverse();
-
         for i in 0..self.leaf_depth.len() {
             let (_h, p) = self.leaf_depth[i];
             self.cut(p, &mut parent);
@@ -162,10 +161,10 @@ impl Ladders {
     } 
 }
 
-fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>) -> Vec<Node> {   
+pub fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>) -> Vec<Node> {   
     let mut list: Vec<Node> = Vec::new();
-    for p in parent.iter() {
-        let node = Node::new(*p, children[*p].clone());
+    for i in 0..parent.len() {
+        let node = Node::new(parent[i], children[i].clone());
         list.push(node);
     }
     return list;
@@ -177,6 +176,3 @@ fn max(a: usize, b: usize) -> usize { // TODO outsource
         false => a,
     }
 }
-
-
-fn main() {}
