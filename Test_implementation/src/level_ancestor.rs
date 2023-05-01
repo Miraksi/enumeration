@@ -13,16 +13,19 @@ pub struct Ladders {
     children: Vec<Vec<usize>>,
     pub ladders: Vec<Vec<usize>>,        // pub for testing
     pub leaf_depth: Vec<(usize, usize)>, // (depth of leaf, index of leaf) // pub for testing
+    ladder_of_node: Vec<usize>,     // stores the index of the ladder on which a node lies
 }
 
 impl Ladders {
     pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
+        let n = parent.len();
         let mut new = Self {
             root: root,
             parent: parent,
             children: children,
             ladders: Vec::new(),
             leaf_depth: Vec::new(),
+            ladder_of_node: vec![0;n],
         };
         new.compute_ladders();
         return new;
@@ -58,6 +61,7 @@ impl Ladders {
         while self.parent[p] != p {
             p = self.parent[p];
             long_path.push(p);
+            self.ladder_of_node[p] = self.ladders.len();
             for child in self.children[p].iter() {
                 if *child != p {
                     self.parent[*child] = *child;
