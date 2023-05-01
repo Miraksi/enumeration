@@ -91,7 +91,7 @@ impl Ladders {
                 }    
             }
         }
-        self.ladders.push(long_path);  // this will add a reverse long_path 
+        self.ladders.push(long_path);  // this will add a reverse long_path (so starting from a leaf)
     }
 
     fn path_to_ladders(&mut self) {    // ladders maybe have to be reversed, but change idx then
@@ -130,15 +130,21 @@ impl Ladders {
         return decendants;
     }
 
+    // TODO test
     fn compute_jumps(&mut self, base: usize) {  // Maybe this should return a Vector
         let mut jumps: Vec<usize> = vec![self.parent_of(base)];
         let mut current: usize = self.parent_of(base);
-        let mut jump_size: usize = 2;
-        while jump_size < self.n {
-            
+        let mut jump_size: usize = 1;
+        while jump_size*2 < self.n {
+            let ladder_idx = self.nodes[current].ladder_idx;
+            current = self.ladders[self.ladder_of(current)][ladder_idx + jump_size]; // maybe make this a function
+            jumps.push(current);
+            jump_size *= 2;
         }
+        self.jump_points.insert(base, jumps);
     }
 
+    // TODO check if #[inline] should be added
     fn ith_child(&self, node: usize, child_idx: usize) -> usize { // maybe add Result-Type
         return self.nodes[node].children[child_idx];
     }
@@ -150,6 +156,10 @@ impl Ladders {
     fn children_of(&self, node: usize) -> Iter<usize> {
         return self.nodes[node].children.iter();
     }
+
+    fn ladder_of(&self, node: usize) -> usize {
+        return self.nodes[node].ladder;
+    } 
 }
 
 fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>) -> Vec<Node> {   
