@@ -137,9 +137,16 @@ impl Ladders {
         let mut jump_size: usize = 1;
         while jump_size*2 < self.n {
             let ladder_idx = self.nodes[current].ladder_idx;
-            current = match self.ladders[self.ladder_of(current)].get(ladder_idx + jump_size) {
-                Some(x) => *x,
-                None => 0,  // None should only happen if we would jump to 0
+            let current_ladder = self.ladder_of(current);
+            match current_ladder.get(ladder_idx + jump_size) {
+                Some(x) => current = *x,
+                None => {
+                    if current_ladder[current_ladder.len()-1] == 0 {
+                        current = 0;
+                    } else {
+                        panic!("index out of bounds in compute_jumps");
+                    }
+                },  // None should only happen if we would jump to 0
             }; // maybe make this a function
             jumps.push(current);
             jump_size *= 2;
@@ -160,8 +167,8 @@ impl Ladders {
         return self.nodes[node].children.iter();
     }
 
-    fn ladder_of(&self, node: usize) -> usize {
-        return self.nodes[node].ladder;
+    fn ladder_of(&self, node: usize) -> &Vec<usize> {
+        return self.ladders.get(self.nodes[node].ladder).unwrap();
     } 
 }
 
