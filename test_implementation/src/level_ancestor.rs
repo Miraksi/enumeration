@@ -6,12 +6,16 @@ use std::slice::Iter;
 fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
     return u32::BITS - x.leading_zeros() - 1;
 }
+
+//maybe use enum to distinguish macro and micro nodes
 #[derive(Debug)]
 pub struct Node {
     parent: usize,
     children: Vec<usize>,
+    depth: usize,
     ladder: usize,
     ladder_idx: usize,
+    jump_descendant: usize,  //points to a jump node descendant
     micro_idx: usize,
 }
 impl Node {
@@ -19,8 +23,10 @@ impl Node {
         Self{
             parent: parent,
             children: children,
+            depth: 0,
             ladder: 0,
             ladder_idx: 0,
+            jump_descendant: 0,
             micro_idx: 0,
         }
     }
@@ -33,8 +39,8 @@ pub struct Ladders {
     pub k: usize,
     pub root: usize,
     pub nodes: Vec<Node>,
-    pub ladders: Vec<Vec<usize>>,        // ladders are in reverse order // pub for testing
-    pub leaf_depth: Vec<(usize, usize)>, // (depth of leaf, index of leaf) // pub for testing
+    pub ladders: Vec<Vec<usize>>,        // ladders are in reverse order
+    pub leaf_depth: Vec<(usize, usize)>, // (depth of leaf, index of leaf)
     pub jump_nodes: Vec<usize>,         // stores all jump_nodes (leaves of the macrotree)
     pub jump_points: HashMap<usize, Vec<usize>>,    // stores all the jumppoints for a jump node
                                                 // we are allowed to stor this in a HashMap, 
@@ -83,6 +89,7 @@ impl Ladders {
     }
 
     fn dfs_depth(&mut self, p: usize, current_depth: usize) {
+        self.nodes[p].depth = current_depth;
         if self.nodes[p].children.len() == 0 {
             self.leaf_depth.push((current_depth, p));
             return;
@@ -99,7 +106,7 @@ impl Ladders {
             p = parent[p];
             long_path.push(p);
             self.nodes[p].ladder = self.ladders.len();
-            for child in self.children_of(p) {
+            for child in self.get_children(p) {
                 if *child != p {
                     parent[*child] = *child;
                 }    
@@ -113,7 +120,7 @@ impl Ladders {
             let h = self.ladders[i].len();
             let mut top_node = self.ladders[i][h-1];
             for j in 0..h {
-                top_node = self.parent_of(top_node);
+                top_node = self.get_parent(top_node);
                 self.ladders[i].push(top_node);
                 self.nodes[self.ladders[i][j]].ladder_idx = j; // set ladder index for noded on the ladder
             }
@@ -128,29 +135,34 @@ impl Ladders {
         }
     }
 
-    fn find_jump_nodes(&mut self, root: usize) -> usize{
-        let mut decendants = self.nodes[root].children.len();
-        let mut child_decendants: usize = 0;
+    fn find_jump_nodes(&mut self, root: usize) -> (usize, usize){
+        let mut descendants = self.nodes[root].children.len();
+        let mut child_descendants: usize = 0;
+        let mut jump_node: usize = 0;
         for i in 0..self.nodes[root].children.len() {
             let child = self.ith_child(root, i);
             let tmp = self.find_jump_nodes(child);
-            decendants += tmp;
-            child_decendants = max(child_decendants, tmp);
+            descendants += tmp.0;
+            child_descendants = max(child_descendants, tmp.0);
+            jump_node = tmp.1;
         }
-        if decendants >= self.k && child_decendants < self.k {
+        if descendants >= self.k && child_descendants < self.k {
             self.jump_nodes.push(root);
+            jump_node = root;
         }
-        return decendants;
+
+        self.nodes[root].jump_descendant = jump_node;
+        return (descendants, jump_node);
     }
 
     // TODO test
     fn compute_jumps(&mut self, base: usize) {  // Maybe this should return a Vector
-        let mut jumps: Vec<usize> = vec![self.parent_of(base)];
-        let mut current: usize = self.parent_of(base);
+        let mut jumps: Vec<usize> = vec![self.get_parent(base)];
+        let mut current: usize = self.get_parent(base);
         let mut jump_size: usize = 1;
         while jump_size*2 < self.n {
             let ladder_idx = self.nodes[current].ladder_idx;
-            let current_ladder = self.ladder_of(current);
+            let current_ladder = self.get_ladder(current);
             match current_ladder.get(ladder_idx + jump_size) {
                 Some(x) => current = *x,
                 None => {
@@ -189,20 +201,20 @@ impl Ladders {
         self.nodes[current].micro_idx = micro_idx;
 
         let mut queue: Vec<usize> = Vec::new();
-        for child in self.children_of(current).rev() {
+        for child in self.get_children(current).rev() {
             queue.push(*child);
         }
         while !queue.is_empty() {
             let last = queue[queue.len() - 1];
-            if self.parent_of(last) != current {
-                current = self.parent_of(current);
+            if self.get_parent(last) != current {
+                current = self.get_parent(current);
             } 
             else {
                 hash -= 1 << (offset);
                 current = queue.pop().unwrap();
                 mapping.push(current);
                 self.nodes[current].micro_idx = micro_idx;
-                for child in self.children_of(current).rev() {
+                for child in self.get_children(current).rev() {
                     queue.push(*child);
                 }
             }
@@ -219,21 +231,43 @@ impl Ladders {
         }
     }
 
+    pub fn macro_level_ancestor(&self, p: usize, l: usize) -> usize {
+        let node = &self.nodes[p];
+        let mut d: i64 = self.nodes[node.jump_descendant].depth as i64 - node.depth as i64;
+        let jump: usize = log_floor(d as u32 + l as u32) as usize;
+        print!("jump: {}\tjump_descendant: {}", jump, node.jump_descendant);
+        match self.jump_points.get(&node.jump_descendant) {
+            Some(list) => {
+                let jumped_to = list[jump];
+                d = self.nodes[jumped_to].depth as i64 - node.depth as i64;
+                println!("\td: {}",d);
+                let ladder = self.get_ladder(jumped_to);
+                let ladder_idx = self.get_ladder_idx(jumped_to);
+                return ladder[(l as i64 + ladder_idx as i64 + d) as usize];
+            }
+            None => panic!("jump node not found"),
+        };
+    }
+
     // TODO check if #[inline] should be added
     fn ith_child(&self, node: usize, child_idx: usize) -> usize { // maybe add Result-Type
         return self.nodes[node].children[child_idx];
     }
 
-    fn parent_of(&self, node: usize) -> usize {
+    fn get_parent(&self, node: usize) -> usize {
         return self.nodes[node].parent;
     }
 
-    fn children_of(&self, node: usize) -> Iter<usize> {
+    fn get_children(&self, node: usize) -> Iter<usize> {
         return self.nodes[node].children.iter();
     }
 
-    fn ladder_of(&self, node: usize) -> &Vec<usize> {
+    fn get_ladder(&self, node: usize) -> &Vec<usize> {
         return self.ladders.get(self.nodes[node].ladder).unwrap();
+    } 
+
+    fn get_ladder_idx(&self, node: usize) -> usize {
+        return self.nodes[node].ladder_idx;
     } 
 }
 
@@ -250,6 +284,13 @@ fn max(a: usize, b: usize) -> usize { // TODO outsource
     match a < b {
         true => b,
         false => a,
+    }
+}
+
+fn distance(a: usize, b: usize) -> usize {
+    match a < b {
+        true => b - a,
+        false => a - b,
     }
 }
 
