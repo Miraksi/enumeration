@@ -157,6 +157,31 @@ impl Ladders {
         self.jump_points.insert(base, jumps);
     }
 
+    pub fn graph_to_hash(&self, root: usize) -> u32 {
+        let mut hash: u32 = (1 << self.k*2) -1;
+        let mut offset: u32 = 0; 
+        let mut current = root;
+        let mut queue: Vec<usize> = Vec::new();
+        for child in self.children_of(current).rev() {
+            queue.push(*child);
+        }
+        while !queue.is_empty() {
+            let last = queue[queue.len() - 1];
+            if self.parent_of(last) != current {
+                current = self.parent_of(current);
+            } 
+            else {
+                hash -= 1 << (offset);
+                current = queue.pop().unwrap();
+                for child in self.children_of(current).rev() {
+                    queue.push(*child);
+                }
+            }
+            offset += 1;
+        }
+        return hash;
+    }
+
     // TODO check if #[inline] should be added
     fn ith_child(&self, node: usize, child_idx: usize) -> usize { // maybe add Result-Type
         return self.nodes[node].children[child_idx];
@@ -189,4 +214,25 @@ fn max(a: usize, b: usize) -> usize { // TODO outsource
         true => b,
         false => a,
     }
+}
+
+pub fn hash_to_graph(k: usize, mut hash: u32) -> Vec<Node> {
+    let mut current: usize = 0;
+    let mut graph: Vec<Node> = vec![Node::new(0, Vec::new())];
+    for _i in 0..2*k {
+        if hash % 2 == 0 {
+            print!("0");
+            let new_idx = graph.len();
+            graph[current].children.push(new_idx);
+            graph.push(Node::new(current,Vec::new()));
+            current = new_idx;
+        }
+        else {
+            print!("1");
+            current = graph[current].parent;
+        }
+        hash = hash / 2;
+    }
+    println!("");
+    return graph;
 }
