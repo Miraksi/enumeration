@@ -8,6 +8,6 @@ fn main() {
     let lad = Ladders::new(parent, children, 0);
     println!("k: {}", lad.k);
     println!("{:?}", lad.ladders);
-    println!("{:?}", lad.jump_nodes);
+    println!("micro_tree_hashes {:?}", lad.micro_mapping);
     // println!("{:?}", brute_level_ancestor(hash_to_graph(2,2)));
 }

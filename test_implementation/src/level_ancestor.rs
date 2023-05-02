@@ -12,6 +12,7 @@ pub struct Node {
     children: Vec<usize>,
     ladder: usize,
     ladder_idx: usize,
+    micro_idx: usize,
 }
 impl Node {
     fn new(parent: usize, children: Vec<usize>) -> Self {
@@ -20,6 +21,7 @@ impl Node {
             children: children,
             ladder: 0,
             ladder_idx: 0,
+            micro_idx: 0,
         }
     }
 }
@@ -39,6 +41,9 @@ pub struct Ladders {
                                                 // since inserting will still work in O(n) 
                                                 // (n beeing the number of nodes)
     pub micro_table: Vec<Vec<Vec<usize>>>,
+    pub micro_hashes: Vec<u32>,
+    pub micro_mapping: Vec<Vec<usize>>,     // maps the result of LA on hashes to the actual nodes
+                                            // TODO testing of mapping
 }
 
 impl Ladders {
@@ -56,10 +61,13 @@ impl Ladders {
             jump_nodes: Vec::new(),
             jump_points: HashMap::new(),
             micro_table: Vec::new(),
+            micro_hashes: Vec::new(),
+            micro_mapping: Vec::new(),
         };
         new.compute_ladders(parent);
         new.compute_jump_points();
         new.compute_micro_table();
+        new.compute_micro_hashes();
         return new;
     }
 
@@ -159,10 +167,27 @@ impl Ladders {
         self.jump_points.insert(base, jumps);
     }
 
-    pub fn graph_to_hash(&self, root: usize) -> u32 {
+    fn compute_micro_hashes(&mut self) {
+        for i in 0..self.jump_nodes.len() {
+            let jump_node = self.jump_nodes[i];
+            for j in 0..self.nodes[jump_node].children.len() {
+                let micro_root = self.nodes[jump_node].children[j];
+                let hash = self.graph_to_hash(micro_root, self.micro_hashes.len());
+                self.micro_hashes.push(hash);
+            }
+        }
+    }
+
+    // calculates the hash of a graph, 
+    // maps the indecies of the hash to the indecies of th original graph,
+    // maps nodes to their corresponding micro-tree
+    pub fn graph_to_hash(&mut self, root: usize, micro_idx: usize) -> u32 {
         let mut hash: u32 = (1 << self.k*2) -1;
         let mut offset: u32 = 0; 
         let mut current = root;
+        let mut mapping: Vec<usize> = vec![current];    // to get the mapping afterwards
+        self.nodes[current].micro_idx = micro_idx;
+
         let mut queue: Vec<usize> = Vec::new();
         for child in self.children_of(current).rev() {
             queue.push(*child);
@@ -175,12 +200,15 @@ impl Ladders {
             else {
                 hash -= 1 << (offset);
                 current = queue.pop().unwrap();
+                mapping.push(current);
+                self.nodes[current].micro_idx = micro_idx;
                 for child in self.children_of(current).rev() {
                     queue.push(*child);
                 }
             }
             offset += 1;
         }
+        self.micro_mapping.push(mapping);
         return hash;
     }
 
