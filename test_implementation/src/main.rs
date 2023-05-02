@@ -1,6 +1,6 @@
 mod level_ancestor;
 
-use level_ancestor::{Ladders,hash_to_graph};
+use level_ancestor::{Ladders,hash_to_graph,brute_level_ancestor};
 
 fn main() {
     let parent: Vec<usize> = vec![0,0,1,0,3,3,2,6,5,4,4,8,9,10,10,7,7];
@@ -9,5 +9,5 @@ fn main() {
     println!("k: {}", lad.k);
     println!("{:?}", lad.ladders);
     println!("{:?}", lad.jump_nodes);
-    println!("{:?}", lad.graph_to_hash(16));
+    // println!("{:?}", brute_level_ancestor(hash_to_graph(2,2)));
 }

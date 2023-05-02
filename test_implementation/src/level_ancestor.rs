@@ -23,7 +23,7 @@ impl Node {
         }
     }
 }
-
+// TODO what kind of queries do I get?
 // we maybe need lifetimes here
 // pub only for debugging purposes
 pub struct Ladders {
@@ -38,6 +38,7 @@ pub struct Ladders {
                                                 // we are allowed to stor this in a HashMap, 
                                                 // since inserting will still work in O(n) 
                                                 // (n beeing the number of nodes)
+    pub micro_table: Vec<Vec<Vec<usize>>>,
 }
 
 impl Ladders {
@@ -52,12 +53,13 @@ impl Ladders {
             nodes: nodes,
             ladders: Vec::new(),
             leaf_depth: Vec::new(),
-
             jump_nodes: Vec::new(),
             jump_points: HashMap::new(),
+            micro_table: Vec::new(),
         };
         new.compute_ladders(parent);
         new.compute_jump_points();
+        new.compute_micro_table();
         return new;
     }
 
@@ -182,6 +184,13 @@ impl Ladders {
         return hash;
     }
 
+    fn compute_micro_table(&mut self) {
+        for hash in 0.. 1 << (2 * self.k) {
+            let tmp = brute_level_ancestor(hash_to_graph(self.k, hash as u32));
+            self.micro_table.push(tmp);
+        }
+    }
+
     // TODO check if #[inline] should be added
     fn ith_child(&self, node: usize, child_idx: usize) -> usize { // maybe add Result-Type
         return self.nodes[node].children[child_idx];
@@ -235,4 +244,18 @@ pub fn hash_to_graph(k: usize, mut hash: u32) -> Vec<Node> {
     }
     println!("");
     return graph;
+}
+
+pub fn brute_level_ancestor(graph: Vec<Node>) -> Vec<Vec<usize>> {
+    let mut table: Vec<Vec<usize>> = Vec::new();
+    for node in 0..graph.len() {
+        let mut tmp: Vec<usize> = vec![node];
+        let mut current = node;
+        while graph[current].parent != current {
+            current = graph[current].parent;
+            tmp.push(current);
+        }
+        table.push(tmp);
+    }
+    return table;
 }
