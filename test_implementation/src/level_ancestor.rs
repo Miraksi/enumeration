@@ -15,7 +15,8 @@ pub struct Node {
     depth: usize,
     ladder: usize,
     ladder_idx: usize,
-    jump_descendant: usize,  //points to a jump node descendant
+    nearest_jump: usize,  //points to the closest jump node
+    micro_tree: usize,
     micro_idx: usize,
 }
 impl Node {
@@ -26,7 +27,8 @@ impl Node {
             depth: 0,
             ladder: 0,
             ladder_idx: 0,
-            jump_descendant: 0,
+            nearest_jump: 0,
+            micro_tree: 0,
             micro_idx: 0,
         }
     }
@@ -151,7 +153,7 @@ impl Ladders {
             jump_node = root;
         }
 
-        self.nodes[root].jump_descendant = jump_node;
+        self.nodes[root].nearest_jump = jump_node;
         return (descendants, jump_node);
     }
 
@@ -193,12 +195,13 @@ impl Ladders {
     // calculates the hash of a graph, 
     // maps the indecies of the hash to the indecies of th original graph,
     // maps nodes to their corresponding micro-tree
-    pub fn graph_to_hash(&mut self, root: usize, micro_idx: usize) -> u32 {
+    pub fn graph_to_hash(&mut self, root: usize, micro_tree: usize) -> u32 {
         let mut hash: u32 = (1 << self.k*2) -1;
         let mut offset: u32 = 0; 
         let mut current = root;
         let mut mapping: Vec<usize> = vec![current];    // to get the mapping afterwards
-        self.nodes[current].micro_idx = micro_idx;
+        self.nodes[current].micro_tree = micro_tree;
+        self.nodes[current].micro_idx = 0;
 
         let mut queue: Vec<usize> = Vec::new();
         for child in self.get_children(current).rev() {
@@ -212,8 +215,9 @@ impl Ladders {
             else {
                 hash -= 1 << (offset);
                 current = queue.pop().unwrap();
+                self.nodes[current].micro_idx = mapping.len();
                 mapping.push(current);
-                self.nodes[current].micro_idx = micro_idx;
+                self.nodes[current].micro_tree = micro_tree;
                 for child in self.get_children(current).rev() {
                     queue.push(*child);
                 }
@@ -233,10 +237,10 @@ impl Ladders {
 
     pub fn macro_level_ancestor(&self, p: usize, l: usize) -> usize {
         let node = &self.nodes[p];
-        let mut d: i64 = self.nodes[node.jump_descendant].depth as i64 - node.depth as i64;
+        let mut d: i64 = self.nodes[node.nearest_jump].depth as i64 - node.depth as i64;
         let jump: usize = log_floor(d as u32 + l as u32) as usize;
-        print!("jump: {}\tjump_descendant: {}", jump, node.jump_descendant);
-        match self.jump_points.get(&node.jump_descendant) {
+        print!("jump: {}\tnearest_jump: {}", jump, node.nearest_jump);
+        match self.jump_points.get(&node.nearest_jump) {
             Some(list) => {
                 let jumped_to = list[jump];
                 d = self.nodes[jumped_to].depth as i64 - node.depth as i64;
@@ -247,6 +251,12 @@ impl Ladders {
             }
             None => panic!("jump node not found"),
         };
+    }
+
+    pub fn micro_level_ancestor(&self, p: usize, l: usize) -> usize {
+        let tree = self.nodes[p].micro_tree;
+        let idx = self.nodes[p].micro_idx;
+        return self.micro_mapping[tree][self.micro_table[tree][idx][l]];
     }
 
     // TODO check if #[inline] should be added

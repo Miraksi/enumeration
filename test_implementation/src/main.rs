@@ -9,5 +9,5 @@ fn main() {
     println!("k: {}", lad.k);
     println!("{:?}", lad.ladders);
     println!("jump_nodes {:?}", lad.jump_nodes);
-    println!("macro_level_ancestor(5,2) = {:?}", lad.macro_level_ancestor(5,2));
+    println!("macro_level_ancestor(5,2) = {:?}", lad.micro_level_ancestor(16,0));
 }
