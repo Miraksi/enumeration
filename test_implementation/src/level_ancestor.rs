@@ -36,7 +36,7 @@ impl Node {
 // TODO what kind of queries do I get?
 // we maybe need lifetimes here
 // pub only for debugging purposes
-pub struct Ladders {
+pub struct Ladders { //TODO CHANGE NAME
     pub n: usize,
     pub k: usize,
     pub root: usize,
