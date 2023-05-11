@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 mod tarjan;
 
+
 const INFTY: u32 = 4294967295;
 
 #[derive(Clone, PartialEq)] // needed for list-comprehension and == operator
@@ -24,7 +25,11 @@ pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char
     triple_list.rdxsort();
     let mut longest_pairs: Vec<Vec<(char,u32)>> = vec![Vec::new(); delta.len()];
     for (length, a, q) in triple_list.iter().rev() {
-        longest_pairs[*q].push((*a, length + 1));
+        let tmp = match *length {
+            INFTY => (*a, INFTY),
+            _ => (*a, length + 1),
+        };
+        longest_pairs[*q].push(tmp);
     }
     return longest_pairs;
 }
@@ -72,7 +77,10 @@ fn compute_pi(edges: &Vec<Vec<usize>>) -> Vec<u32> {
     for u in topsort {
         if color[u] == Color::WHITE {
             for v in rev_edges[u].iter() {
-                pi[*v] = max(pi[*v], pi[u] + 1);
+                pi[*v] = match pi[u] {
+                    INFTY => INFTY,
+                    _ => max(pi[*v], pi[u] + 1),
+                };
             }
         }
     }
