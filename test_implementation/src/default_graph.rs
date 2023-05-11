@@ -108,6 +108,10 @@ impl DefaultGraph {
         for p in cycle.mapping.iter() {
             self.calc_connected(*p);
         }
+        for p in cycle.mapping.iter() {
+            self.mapping[*p] = Some(self.components.len());
+        }
+        self.components.push(cycle);
     }
 
     fn calc_cycle(&mut self, start: usize) -> DefaultComp {
@@ -143,26 +147,29 @@ impl DefaultGraph {
             let p = queue.pop().unwrap();
             let mut edges: Vec<usize> = Vec::new();
             for q in self.rev_default_edges[p].iter() {
+                println!("from {} to {}", p, *q);
                 match self.comp_idx[*q] {
                     Some(_) => continue,
                     None => {
+                        println!("mapping of {}: {:?}", *q, self.mapping[*q]);
                         queue.push(*q);
-                        if let Some(x) = self.mapping[*q] {
-                            edges.push(x);
-                        }
-                        else {
-                            self.mapping[*q] = Some(comp_mapping.len());     //same here
-                            edges.push(comp_mapping.len());
-                            comp_mapping.push(*q);
-                            self.comp_idx[*q] = Some(self.components.len());
-                            edge_list.push(Vec::new());
-                        }
+                        match self.mapping[*q] {
+                            Some(x) => edges.push(x),
+                            None => {
+                                self.mapping[*q] = Some(comp_mapping.len());     //same here
+                                edges.push(comp_mapping.len());
+                                println!("edges to be pushed: {:?}", edges);
+                                comp_mapping.push(*q);
+                                self.comp_idx[*q] = Some(self.components.len());
+                                edge_list.push(Vec::new());
+                            },
+                        };
                     }
                 };
                 
             }
             if p == root {
-                edge_list.push(edges);
+                edge_list[0] = edges;
             }
             else if let Some(x) = self.mapping[p] {
                 edge_list[x] = edges;
