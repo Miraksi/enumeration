@@ -3,13 +3,15 @@ mod longest_path;
 use std::collections::HashMap;
 use longest_path::compute_longest_pairs;
 
+#[derive(Debug)]
 enum CompType {
     Independent,
     Connected,
     Cycle,
 }
 
-struct DefaultComp {
+#[derive(Debug)]
+pub struct DefaultComp {
     comp_typ: CompType,
     edge_list: Vec<Vec<usize>>,
     mapping: Vec<usize>,
@@ -25,12 +27,12 @@ impl DefaultComp {
 }
 
 pub struct DefaultGraph {
-    components: Vec<DefaultComp>,
-    default_edges: Vec<Vec<usize>>,
-    mapping: Vec<Option<usize>>,
+    pub components: Vec<DefaultComp>,
+    pub default_edges: Vec<Vec<usize>>,
+    pub mapping: Vec<Option<usize>>,
 }
 impl DefaultGraph {
-    fn new(delta: &Vec<HashMap<char, usize>>) -> Self {
+    pub fn new(delta: &Vec<HashMap<char, usize>>) -> Self {
         let mut new = Self{
             components: Vec::new(),
             default_edges: compute_default_graph(delta),
