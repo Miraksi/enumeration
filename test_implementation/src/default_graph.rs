@@ -147,18 +147,15 @@ impl DefaultGraph {
             let p = queue.pop().unwrap();
             let mut edges: Vec<usize> = Vec::new();
             for q in self.rev_default_edges[p].iter() {
-                println!("from {} to {}", p, *q);
                 match self.comp_idx[*q] {
                     Some(_) => continue,
                     None => {
-                        println!("mapping of {}: {:?}", *q, self.mapping[*q]);
                         queue.push(*q);
                         match self.mapping[*q] {
                             Some(x) => edges.push(x),
                             None => {
                                 self.mapping[*q] = Some(comp_mapping.len());     //same here
                                 edges.push(comp_mapping.len());
-                                println!("edges to be pushed: {:?}", edges);
                                 comp_mapping.push(*q);
                                 self.comp_idx[*q] = Some(self.components.len());
                                 edge_list.push(Vec::new());
