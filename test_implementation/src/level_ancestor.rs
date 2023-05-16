@@ -40,7 +40,7 @@ pub struct Ladders { //TODO CHANGE NAME
     pub n: usize,
     pub k: usize,
     pub root: usize,
-    pub nodes: Vec<Node>,
+    pub nodes: Vec<Node>,                // It is important, that the parent of the root, is the root itself
     pub ladders: Vec<Vec<usize>>,        // ladders are in reverse order
     pub leaf_depth: Vec<(usize, usize)>, // (depth of leaf, index of leaf)
     pub jump_nodes: Vec<usize>,         // stores all jump_nodes (leaves of the macrotree)
@@ -58,7 +58,7 @@ impl Ladders {
     pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
         let n = parent.len();
         let k = (log_floor(n as u32)/4) as usize;
-        let nodes = compute_node_list(&parent, children);
+        let nodes = compute_node_list(&parent, children, root);
         let mut new = Self {
             n: n,
             k: k,
@@ -302,12 +302,13 @@ impl Ladders {
     }
 }
 
-pub fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>) -> Vec<Node> {   
+pub fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Vec<Node> {   
     let mut list: Vec<Node> = Vec::new();
     for i in 0..parent.len() {
         let node = Node::new(parent[i], children[i].clone());
         list.push(node);
     }
+    list[root].parent = root;   //Sets the parent of the root to always be the root
     return list;
 }
 
