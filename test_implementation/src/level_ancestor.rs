@@ -38,7 +38,7 @@ impl Node {
 // pub only for debugging purposes
 pub struct Ladders { //TODO CHANGE NAME
     pub n: usize,
-    pub k: usize,
+    pub k: usize,                        // k = (log n) / 4
     pub root: usize,
     pub nodes: Vec<Node>,                // It is important, that the parent of the root, is the root itself
     pub ladders: Vec<Vec<usize>>,        // ladders are in reverse order
