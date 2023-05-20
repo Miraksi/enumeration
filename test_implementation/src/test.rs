@@ -1,9 +1,12 @@
 use std::collections::{HashSet, HashMap};
 
 fn main() {
-    let mut list: Vec<u32> = vec![2,3,4,5,6,7];
-    list.reverse();
-    println!("{:?}", list);
-    let opt: Vec<Option<bool>> = vec![Option::None; 4];
-    println!("{:?}", opt);
+    let (arr1, arr2) = foo(vec![32], vec![23, 32]);
+    println!("{:?}, {:?}", arr1, arr2);
+}
+
+fn foo(mut arr1: Vec<usize>, mut arr2: Vec<usize>) -> (Vec<usize>, Vec<usize>) {
+    arr1.push(arr2.len());
+    arr2.push(arr1.len());
+    return (arr1, arr2);
 }

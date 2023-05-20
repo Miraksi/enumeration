@@ -1,6 +1,10 @@
 use std::slice::Iter;
 
 
+fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
+    return u32::BITS - x.leading_zeros() - 1;
+}
+
 #[derive(Clone,Debug)]
 pub struct Node {
     parent: usize,
@@ -17,6 +21,7 @@ impl Node {
     }
 }
 
+#[derive(Debug)]
 struct LinkedListSet {
     sets: Vec<usize>,
     size: Vec<usize>,
@@ -38,8 +43,16 @@ impl LinkedListSet {
 
 #[derive(Debug)]
 pub struct Cluster {
-    boundaries: (Option<usize>, Option<usize>),
-    node_idxs: Vec<usize>,
+    nodes: Vec<usize>,
+    bounds: Vec<usize>,
+}
+impl Cluster {
+    fn new(nodes: Vec<usize>, bounds: Vec<usize>) -> Self {
+        Self{
+            nodes: nodes,
+            bounds: bounds,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -47,23 +60,27 @@ pub struct Connectivity {
     pub root: usize,
     pub nodes: Vec<Node>,
     pub clusters: Vec<Cluster>,
+    pub mapping: Vec<Option<usize>>,
 }
 impl Connectivity {
     pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
         let mut nodes: Vec<Node> = compute_node_list(&parent, children, root);
         normalize(&mut nodes, root);
         let nodes = compute_descendants(nodes, root);
+        let n = nodes.len();
+        let z = log_floor(n as u32);
 
         let mut tmp = Connectivity{
             root: root,
             nodes: nodes,
             clusters: Vec::new(),
+            mapping: vec![None; n],
         };
-        let (_, list) = tmp.cluster(root, 3, LinkedListSet::new());
+        let (_, list) = tmp.cluster(root, z as usize, LinkedListSet::new());
         tmp.collect_cluster(0, &list);
         return tmp;
     }
-
+// algorithm from: Ambivalent data structures 
     fn cluster(&mut self, root: usize, z: usize, mut links: LinkedListSet) -> (usize, LinkedListSet) {
         let v = links.sets.len();
         links.sets.push(root);
@@ -79,6 +96,7 @@ impl Connectivity {
             let (w, tmp) = self.cluster(*i, z, links);
             links = tmp;
             if links.tdeg[v] + links.tdeg[w] <= 4 && links.size[v] + links.size[w] <= z {
+                links.tdeg[v] = (links.tdeg[v] + links.tdeg[w]) - 2;
                 links.size[v] += links.size[w];
                 links.next[links.last[v]] = Some(w);
                 links.last[v] = w;
@@ -91,14 +109,39 @@ impl Connectivity {
     }
 
     fn collect_cluster(&mut self, mut current: usize, links: &LinkedListSet) {
-        print!("(");
+        let cluster_idx = self.clusters.len();
+        let mut nodes: Vec<usize> = Vec::new();
         loop {
-            print!("{},", links.sets[current]);
+            nodes.push(links.sets[current]);
+            self.mapping[links.sets[current]] = Some(cluster_idx);
             match links.next[current] {
-                None => return println!(")"),
+                None => break,
                 Some(i) => current = i,
             };
         }
+        let bounds = self.compute_bounds(&nodes);
+        self.clusters.push(Cluster::new(nodes, bounds));
+    }
+
+    fn compute_bounds(&self, nodes: &Vec<usize>) -> Vec<usize>{
+        let mut bounds: Vec<usize> = Vec::new();
+        for v in nodes.iter() {
+            let cluster = self.mapping[*v];
+            if cluster != self.mapping[self.get_parent(*v)] {
+                bounds.push(*v);
+                continue;
+            }
+            for w in self.get_children(*v) {
+                if cluster != self.mapping[*w] {
+                    bounds.push(*v);
+                    break;
+                }
+            }
+        }
+        return bounds;
+    }
+    fn get_parent(&self, node: usize) -> usize {
+        return self.nodes[node].parent;
     }
 
     fn get_children(&self, node: usize) -> Iter<usize> {
@@ -185,5 +228,5 @@ fn main() {
 
     parent = vec![0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11];
     let con = Connectivity::new(parent, children, 0);
-    println!("{:?}", con);
+    println!("{:?}", con.clusters);
 }
