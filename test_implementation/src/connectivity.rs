@@ -21,6 +21,7 @@ impl Node {
     }
 }
 
+//TODO export into its own module
 #[derive(Debug)]
 struct LinkedListSet {
     sets: Vec<usize>,
@@ -56,11 +57,27 @@ impl Cluster {
 }
 
 #[derive(Debug)]
+pub struct EvenShil {
+    pub forest: Vec<Node>,
+    pub mapping: Vec<usize>,
+}
+impl EvenShil {
+    fn new(forest: Vec<Node>, mapping: Vec<usize>) -> Self {
+        EvenShil{
+            forest: forest,
+            mapping: mapping,
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct Connectivity {
     pub root: usize,
     pub nodes: Vec<Node>,
     pub clusters: Vec<Cluster>,
-    pub mapping: Vec<Option<usize>>,
+    pub cluster_mapping: Vec<Option<usize>>,
+    pub eve_shil: EvenShil,
+    pub macro_mapping: Vec<Option<usize>>,
 }
 impl Connectivity {
     pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
@@ -74,10 +91,13 @@ impl Connectivity {
             root: root,
             nodes: nodes,
             clusters: Vec::new(),
-            mapping: vec![None; n],
+            cluster_mapping: vec![None; n],
+            eve_shil: EvenShil::new(Vec::new(), Vec::new()),
+            macro_mapping: vec![None; n],
         };
         let (_, list) = tmp.cluster(root, z as usize, LinkedListSet::new());
         tmp.collect_cluster(0, &list);
+        tmp.eve_shil.mapping = tmp.build_macro_forest();
         return tmp;
     }
 // algorithm from: Ambivalent data structures 
@@ -113,7 +133,7 @@ impl Connectivity {
         let mut nodes: Vec<usize> = Vec::new();
         loop {
             nodes.push(links.sets[current]);
-            self.mapping[links.sets[current]] = Some(cluster_idx);
+            self.cluster_mapping[links.sets[current]] = Some(cluster_idx);
             match links.next[current] {
                 None => break,
                 Some(i) => current = i,
@@ -123,16 +143,16 @@ impl Connectivity {
         self.clusters.push(Cluster::new(nodes, bounds));
     }
 
-    fn compute_bounds(&self, nodes: &Vec<usize>) -> Vec<usize>{
+    fn compute_bounds(&mut self, nodes: &Vec<usize>) -> Vec<usize>{
         let mut bounds: Vec<usize> = Vec::new();
         for v in nodes.iter() {
-            let cluster = self.mapping[*v];
-            if cluster != self.mapping[self.get_parent(*v)] {
+            let cluster = self.cluster_mapping[*v];
+            if cluster != self.cluster_mapping[self.get_parent(*v)] {
                 bounds.push(*v);
                 continue;
             }
             for w in self.get_children(*v) {
-                if cluster != self.mapping[*w] {
+                if cluster != self.cluster_mapping[*w] {
                     bounds.push(*v);
                     break;
                 }
@@ -140,6 +160,65 @@ impl Connectivity {
         }
         return bounds;
     }
+
+    fn build_macro_forest(&mut self) -> Vec<usize> {
+        let mut mapping: Vec<usize> = Vec::new();
+
+        for i in 0..self.clusters.len() {
+            let fst_bound = self.clusters[i].bounds[0];
+            let has_parent = self.bound_to_macro(fst_bound, &mut mapping);
+            if self.clusters[i].bounds.len() == 2 {
+                let snd_bound = self.clusters[i].bounds[1];
+                self.bound_to_macro(snd_bound, &mut mapping);
+                let first = self.macro_mapping[fst_bound].unwrap();
+                let second = self.macro_mapping[snd_bound].unwrap();
+                if has_parent {
+                    self.eve_shil.forest[second].parent = first;
+                }
+                else {
+                    self.eve_shil.forest[first].parent = second;
+                }
+            }
+        }
+        return mapping
+    }
+
+    fn bound_to_macro(&mut self, v: usize, mapping: &mut Vec<usize>) -> bool {
+        let cluster = self.cluster_mapping[v];
+        let parent = self.get_parent(v);
+        let mut has_parent = false;
+        if cluster != self.cluster_mapping[parent] {
+            self.add_macro_node(parent, v, mapping);
+            has_parent = true;
+        }
+        for i in 0..self.nodes[v].children.len() {
+            let w = self.nodes[v].children[i];
+            if cluster != self.cluster_mapping[w] {
+                self.add_macro_node(v, w, mapping);
+            }
+        }
+        return has_parent;
+    }
+
+    fn add_macro_node(&mut self, parent: usize, child: usize, mapping: &mut Vec<usize>) {
+        if self.macro_mapping[parent] == None {
+            let idx = self.eve_shil.forest.len();
+            self.macro_mapping[parent] = Some(idx);
+            self.eve_shil.forest.push(Node::new(idx, Vec::new()));
+            mapping.push(parent);
+        }
+        if self.macro_mapping[child] == None {
+            let idx = self.eve_shil.forest.len();
+            self.macro_mapping[child] = Some(idx);
+            self.eve_shil.forest.push(Node::new(idx, Vec::new()));
+            mapping.push(child);
+        }
+        let p_idx = self.macro_mapping[parent].unwrap();
+        let c_idx = self.macro_mapping[child].unwrap();
+        self.eve_shil.forest[p_idx].children.push(c_idx);
+        self.eve_shil.forest[c_idx].parent = p_idx;
+    }
+
     fn get_parent(&self, node: usize) -> usize {
         return self.nodes[node].parent;
     }
@@ -228,5 +307,7 @@ fn main() {
 
     parent = vec![0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11];
     let con = Connectivity::new(parent, children, 0);
-    println!("{:?}", con.clusters);
+    println!("Clusters: {:?}", con.clusters);
+    println!("Mapping: {:?}", con.eve_shil.mapping);
+    println!("Tree: {:?}", con.eve_shil.forest)
 }
