@@ -86,6 +86,7 @@ impl Connectivity {
         let nodes = compute_descendants(nodes, root);
         let n = nodes.len();
         let z = log_floor(n as u32);
+        println!("z = {z}\n");
 
         let mut tmp = Connectivity{
             root: root,
@@ -115,16 +116,19 @@ impl Connectivity {
         for i in self.nodes[root].children.clone().iter() {
             let (w, tmp) = self.cluster(*i, z, links);
             links = tmp;
+            //println!("root: {root}, tdeg[v]: {}, size[v]: {}  \tchild: {}, tdeg[w]: {}, size[w]: {}",links.tdeg[v], links.size[v], links.sets[w], links.tdeg[w], links.size[w]);
             if links.tdeg[v] + links.tdeg[w] <= 4 && links.size[v] + links.size[w] <= z {
                 links.tdeg[v] = (links.tdeg[v] + links.tdeg[w]) - 2;
                 links.size[v] += links.size[w];
                 links.next[links.last[v]] = Some(w);
-                links.last[v] = w;
+                links.last[v] = links.last[w];
+                //println!("root: {root}, next[v]: {:?} last[v]: {}", links.sets[links.next[v].unwrap()], links.sets[w]);
             }
             else {
+                //println!("for root {root}, collect: {}",links.sets[w]);
                 self.collect_cluster(w, &links);
             }
-        }             
+        }
         return (v, links);
     }
 
@@ -170,13 +174,11 @@ impl Connectivity {
             if self.clusters[i].bounds.len() == 2 {
                 let snd_bound = self.clusters[i].bounds[1];
                 self.bound_to_macro(snd_bound, &mut mapping);
-                let first = self.macro_mapping[fst_bound].unwrap();
-                let second = self.macro_mapping[snd_bound].unwrap();
                 if has_parent {
-                    self.eve_shil.forest[second].parent = first;
+                    self.add_macro_node(fst_bound, snd_bound, &mut mapping);
                 }
                 else {
-                    self.eve_shil.forest[first].parent = second;
+                    self.add_macro_node(snd_bound, fst_bound, &mut mapping);
                 }
             }
         }
@@ -188,7 +190,6 @@ impl Connectivity {
         let parent = self.get_parent(v);
         let mut has_parent = false;
         if cluster != self.cluster_mapping[parent] {
-            self.add_macro_node(parent, v, mapping);
             has_parent = true;
         }
         for i in 0..self.nodes[v].children.len() {
@@ -291,6 +292,18 @@ fn main() {
     children.push(vec![19,20]);
     children.push(vec![21,22]);
     children.push(vec![23,24]);
+    children.push(vec![25,26]);
+    children.push(vec![27,28]);
+    children.push(vec![29,30]);
+    children.push(vec![31,32]);
+    children.push(vec![33,34]);
+    children.push(vec![35,36]);
+    children.push(Vec::new());
+    children.push(Vec::new());
+    children.push(Vec::new());
+    children.push(Vec::new());
+    children.push(Vec::new());
+    children.push(Vec::new());
     children.push(Vec::new());
     children.push(Vec::new());
     children.push(Vec::new());
@@ -305,9 +318,11 @@ fn main() {
     children.push(Vec::new());
     children.push(Vec::new());
 
-    parent = vec![0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11];
+    parent = vec![0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17];
+    println!("{}", parent.len());
     let con = Connectivity::new(parent, children, 0);
     println!("Clusters: {:?}", con.clusters);
     println!("Mapping: {:?}", con.eve_shil.mapping);
-    println!("Tree: {:?}", con.eve_shil.forest)
+    println!("Tree: {:?}", con.eve_shil.forest);
+    println!("Cluster_mapping: {:?}", con.cluster_mapping);
 }
