@@ -74,6 +74,7 @@ impl Connectivity {
         normalize(&mut nodes, root);
         let nodes = compute_descendants(nodes, root);
         let n = nodes.len();
+        println!("n = {n}");
         let z = log_floor(n as u32);
         println!("z = {z}\n");
 
@@ -172,52 +173,42 @@ impl Connectivity {
 
         for i in 0..self.clusters.len() {
             let fst_bound = self.clusters[i].bounds[0];
-            let has_parent = self.bound_to_macro(fst_bound, &mut forest);
+            self.bound_to_macro(fst_bound, &mut forest);
             if self.clusters[i].bounds.len() == 2 {
                 let snd_bound = self.clusters[i].bounds[1];
                 self.bound_to_macro(snd_bound, &mut forest);
-                if has_parent {
-                    self.add_macro_node(fst_bound, snd_bound, &mut forest);
-                }
-                else {
-                    self.add_macro_node(snd_bound, fst_bound, &mut forest);
-                }
+                self.add_macro_node(fst_bound, snd_bound, &mut forest);
             }
         }
         return forest;
     }
 
-    fn bound_to_macro(&mut self, v: usize, forest: &mut Vec<even_shil::Node>) -> bool {
+    fn bound_to_macro(&mut self, v: usize, forest: &mut Vec<even_shil::Node>) {
         let cluster = self.cluster_mapping[v];
-        let parent = self.get_parent(v);
-        let mut has_parent = false;
-        if cluster != self.cluster_mapping[parent] {
-            has_parent = true;
-        }
+
         for i in 0..self.nodes[v].children.len() {
             let w = self.nodes[v].children[i];
             if cluster != self.cluster_mapping[w] {
                 self.add_macro_node(v, w, forest);
             }
         }
-        return has_parent;
     }
 
-    fn add_macro_node(&mut self, parent: usize, child: usize, forest: &mut Vec<even_shil::Node>) {
-        if self.macro_mapping[parent] == None {
+    fn add_macro_node(&mut self, u: usize, v: usize, forest: &mut Vec<even_shil::Node>) {
+        if self.macro_mapping[u] == None {
             let idx = forest.len();
-            self.macro_mapping[parent] = Some(idx);
+            self.macro_mapping[u] = Some(idx);
             forest.push(even_shil::Node::new(Vec::new()));
         }
-        if self.macro_mapping[child] == None {
+        if self.macro_mapping[v] == None {
             let idx = forest.len();
-            self.macro_mapping[child] = Some(idx);
+            self.macro_mapping[v] = Some(idx);
             forest.push(even_shil::Node::new(Vec::new()));
         }
-        let p_idx = self.macro_mapping[parent].unwrap();
-        let c_idx = self.macro_mapping[child].unwrap();
-        forest[p_idx].adjacent.push(c_idx);
-        forest[c_idx].adjacent.push(p_idx);
+        let u_idx = self.macro_mapping[u].unwrap();
+        let v_idx = self.macro_mapping[v].unwrap();
+        forest[u_idx].adjacent.push(v_idx);
+        forest[v_idx].adjacent.push(u_idx);
     }
 
     fn get_parent(&self, node: usize) -> usize {
@@ -280,27 +271,7 @@ fn main() {
     let mut parent: Vec<usize> = Vec::new();    //TODO test for cases with more than one boundary node
     let mut children: Vec<Vec<usize>> = Vec::new();
 
-    children.push(vec![1,2]);
-    children.push(vec![3,4]);
-    children.push(vec![5,6]);
-    children.push(vec![7,8]);
-    children.push(vec![9,10]);
-    children.push(vec![11,12]);
-    children.push(vec![13,14]);
-    children.push(vec![15,16]);
-    children.push(vec![17,18]);
-    children.push(vec![19,20]);
-    children.push(vec![21,22]);
-    children.push(vec![23,24]);
-    children.push(vec![25,26]);
-    children.push(vec![27,28]);
-    children.push(vec![29,30]);
-    children.push(vec![31,32]);
-    children.push(vec![33,34]);
-    children.push(vec![35,36]);
-    children.push(Vec::new());
-    children.push(Vec::new());
-    children.push(Vec::new());
+    children.push(vec![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]);
     children.push(Vec::new());
     children.push(Vec::new());
     children.push(Vec::new());
@@ -318,14 +289,17 @@ fn main() {
     children.push(Vec::new());
     children.push(Vec::new());
 
-    parent = vec![0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17];
-    println!("{}", parent.len());
+    parent = vec![0;children.len()];
     let mut con = Connectivity::new(parent, children, 0);
-    println!("Clusters: {:?}", con.clusters);
-    println!("Tree: {:?}", con.even_shil.forest);
-    println!("comp: {:?}", con.even_shil.component);
-    println!("connected(8,2): {:?}", con.macro_connected(8,2));
-    println!("delete(1,0)");
-    con.macro_delete(1,0);
-    println!("connected(8,2): {:?}", con.macro_connected(8,2));
+    println!("Nodes: {:?}\n", con.nodes);
+    println!("Clusters: {:?}\n", con.clusters);
+    println!("Mapping: {:?}\n", con.macro_mapping);
+    println!("Tree: {:?}\n", con.even_shil.forest);
+    println!("comp: {:?}\n", con.even_shil.component);
+    con.macro_delete(20,21);
+    println!("delete(20,21)");
+    println!("comp: {:?}\n", con.even_shil.component);
+    con.macro_delete(18,19);
+    println!("delete(18,19)");
+    println!("comp: {:?}\n", con.even_shil.component);
 }

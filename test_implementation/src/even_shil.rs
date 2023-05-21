@@ -11,7 +11,7 @@ impl Node {
         }
     }
 }
-
+// used Wikipedia as reference https://en.wikipedia.org/wiki/Dynamic_connectivity
 #[derive(Debug)]
 pub struct EvenShil {
     pub forest: Vec<Node>,
