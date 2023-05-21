@@ -65,7 +65,7 @@ pub struct Connectivity {
     pub nodes: Vec<Node>,
     pub clusters: Vec<Cluster>,
     pub cluster_mapping: Vec<Option<usize>>,
-    pub eve_shil: EvenShil,
+    pub even_shil: EvenShil,
     pub macro_mapping: Vec<Option<usize>>,
 }
 impl Connectivity {
@@ -82,14 +82,21 @@ impl Connectivity {
             nodes: nodes,
             clusters: Vec::new(),
             cluster_mapping: vec![None; n],
-            eve_shil: EvenShil::new(Vec::new(), Vec::new()),
+            even_shil: EvenShil::new(Vec::new()),
             macro_mapping: vec![None; n],
         };
         let (_, list) = tmp.cluster(root, z as usize, LinkedListSet::new());
         tmp.collect_cluster(0, &list);
-        tmp.eve_shil.mapping = tmp.build_macro_forest();
+        tmp.even_shil = EvenShil::new(tmp.build_macro_forest());
         return tmp;
     }
+
+    pub fn macro_connected(&self, u: usize, v: usize) -> bool {
+        let u = self.macro_mapping[u].unwrap();
+        let v = self.macro_mapping[v].unwrap();
+        return self.even_shil.connected(u, v);
+    }
+
 // algorithm from: Ambivalent data structures 
     fn cluster(&mut self, root: usize, z: usize, mut links: LinkedListSet) -> (usize, LinkedListSet) {
         let v = links.sets.len();
@@ -136,7 +143,7 @@ impl Connectivity {
         self.clusters.push(Cluster::new(nodes, bounds));
     }
 
-    fn compute_bounds(&mut self, nodes: &Vec<usize>) -> Vec<usize>{
+    fn compute_bounds(&mut self, nodes: &Vec<usize>) -> Vec<usize> {
         let mut bounds: Vec<usize> = Vec::new();
         for v in nodes.iter() {
             let cluster = self.cluster_mapping[*v];
@@ -154,27 +161,27 @@ impl Connectivity {
         return bounds;
     }
 
-    fn build_macro_forest(&mut self) -> Vec<usize> {
-        let mut mapping: Vec<usize> = Vec::new();
+    fn build_macro_forest(&mut self) -> Vec<even_shil::Node>{
+        let mut forest: Vec<even_shil::Node> = Vec::new();
 
         for i in 0..self.clusters.len() {
             let fst_bound = self.clusters[i].bounds[0];
-            let has_parent = self.bound_to_macro(fst_bound, &mut mapping);
+            let has_parent = self.bound_to_macro(fst_bound, &mut forest);
             if self.clusters[i].bounds.len() == 2 {
                 let snd_bound = self.clusters[i].bounds[1];
-                self.bound_to_macro(snd_bound, &mut mapping);
+                self.bound_to_macro(snd_bound, &mut forest);
                 if has_parent {
-                    self.add_macro_node(fst_bound, snd_bound, &mut mapping);
+                    self.add_macro_node(fst_bound, snd_bound, &mut forest);
                 }
                 else {
-                    self.add_macro_node(snd_bound, fst_bound, &mut mapping);
+                    self.add_macro_node(snd_bound, fst_bound, &mut forest);
                 }
             }
         }
-        return mapping
+        return forest;
     }
 
-    fn bound_to_macro(&mut self, v: usize, mapping: &mut Vec<usize>) -> bool {
+    fn bound_to_macro(&mut self, v: usize, forest: &mut Vec<even_shil::Node>) -> bool {
         let cluster = self.cluster_mapping[v];
         let parent = self.get_parent(v);
         let mut has_parent = false;
@@ -184,29 +191,27 @@ impl Connectivity {
         for i in 0..self.nodes[v].children.len() {
             let w = self.nodes[v].children[i];
             if cluster != self.cluster_mapping[w] {
-                self.add_macro_node(v, w, mapping);
+                self.add_macro_node(v, w, forest);
             }
         }
         return has_parent;
     }
 
-    fn add_macro_node(&mut self, parent: usize, child: usize, mapping: &mut Vec<usize>) {
+    fn add_macro_node(&mut self, parent: usize, child: usize, forest: &mut Vec<even_shil::Node>) {
         if self.macro_mapping[parent] == None {
-            let idx = self.eve_shil.forest.len();
+            let idx = forest.len();
             self.macro_mapping[parent] = Some(idx);
-            self.eve_shil.forest.push(even_shil::Node::new(Vec::new()));
-            mapping.push(parent);
+            forest.push(even_shil::Node::new(Vec::new()));
         }
         if self.macro_mapping[child] == None {
-            let idx = self.eve_shil.forest.len();
+            let idx = forest.len();
             self.macro_mapping[child] = Some(idx);
-            self.eve_shil.forest.push(even_shil::Node::new(Vec::new()));
-            mapping.push(child);
+            forest.push(even_shil::Node::new(Vec::new()));
         }
         let p_idx = self.macro_mapping[parent].unwrap();
         let c_idx = self.macro_mapping[child].unwrap();
-        self.eve_shil.forest[p_idx].adjacent.push(c_idx);
-        self.eve_shil.forest[c_idx].adjacent.push(p_idx);
+        forest[p_idx].adjacent.push(c_idx);
+        forest[c_idx].adjacent.push(p_idx);
     }
 
     fn get_parent(&self, node: usize) -> usize {
@@ -311,7 +316,6 @@ fn main() {
     println!("{}", parent.len());
     let con = Connectivity::new(parent, children, 0);
     println!("Clusters: {:?}", con.clusters);
-    println!("Mapping: {:?}", con.eve_shil.mapping);
-    println!("Tree: {:?}", con.eve_shil.forest);
-    println!("connected(8,2): {:?}", con.eve_shil.connected(8,2));
+    println!("Tree: {:?}", con.even_shil.forest);
+    println!("connected(8,2): {:?}", con.macro_connected(8,2));
 }

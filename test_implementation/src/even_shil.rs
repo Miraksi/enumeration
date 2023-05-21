@@ -15,24 +15,24 @@ impl Node {
 #[derive(Debug)]
 pub struct EvenShil {
     pub forest: Vec<Node>,
-    pub mapping: Vec<usize>,
     pub component: Vec<usize>,
     pub count: usize,
 }
 impl EvenShil {     //expects the parent of a root to be itself
-    pub fn new(forest: Vec<Node>, mapping: Vec<usize>) -> Self {   
+    pub fn new(forest: Vec<Node>) -> Self {   
         let n = forest.len();
         let mut tmp = EvenShil{
             forest: forest,
-            mapping: mapping,
             component: vec![0;n],
             count: 0,
         };
+        println!("n {n}");
         tmp.component = tmp.calc_component();
         return tmp;
     }
 
     pub fn connected(&self, u: usize, v: usize) -> bool {
+        println!("comp size: {}", self.component.len());
         return self.component[u] == self.component[v];
     }
 
@@ -71,7 +71,6 @@ impl EvenShil {     //expects the parent of a root to be itself
                 let current = queue.pop().unwrap();
                 if !visited[current] {
                     queue.append(&mut self.forest[current].adjacent.clone());
-                    continue;
                 }
                 visited[current] = true;
                 comp[current] = self.count;
