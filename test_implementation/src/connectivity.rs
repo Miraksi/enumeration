@@ -1,4 +1,6 @@
 use std::slice::Iter;
+use even_shil::EvenShil;
+mod even_shil;
 
 
 fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
@@ -56,19 +58,6 @@ impl Cluster {
     }
 }
 
-#[derive(Debug)]
-pub struct EvenShil {
-    pub forest: Vec<Node>,
-    pub mapping: Vec<usize>,
-}
-impl EvenShil {
-    fn new(forest: Vec<Node>, mapping: Vec<usize>) -> Self {
-        EvenShil{
-            forest: forest,
-            mapping: mapping,
-        }
-    }
-}
 
 #[derive(Debug)]
 pub struct Connectivity {
@@ -205,19 +194,19 @@ impl Connectivity {
         if self.macro_mapping[parent] == None {
             let idx = self.eve_shil.forest.len();
             self.macro_mapping[parent] = Some(idx);
-            self.eve_shil.forest.push(Node::new(idx, Vec::new()));
+            self.eve_shil.forest.push(even_shil::Node::new(Vec::new()));
             mapping.push(parent);
         }
         if self.macro_mapping[child] == None {
             let idx = self.eve_shil.forest.len();
             self.macro_mapping[child] = Some(idx);
-            self.eve_shil.forest.push(Node::new(idx, Vec::new()));
+            self.eve_shil.forest.push(even_shil::Node::new(Vec::new()));
             mapping.push(child);
         }
         let p_idx = self.macro_mapping[parent].unwrap();
         let c_idx = self.macro_mapping[child].unwrap();
-        self.eve_shil.forest[p_idx].children.push(c_idx);
-        self.eve_shil.forest[c_idx].parent = p_idx;
+        self.eve_shil.forest[p_idx].adjacent.push(c_idx);
+        self.eve_shil.forest[c_idx].adjacent.push(p_idx);
     }
 
     fn get_parent(&self, node: usize) -> usize {
@@ -277,7 +266,7 @@ fn compute_descendants(mut nodes: Vec<Node>, current: usize) -> Vec<Node> {
     return nodes;
 }
 fn main() {
-    let mut parent: Vec<usize> = Vec::new();
+    let mut parent: Vec<usize> = Vec::new();    //TODO test for cases with more than one boundary node
     let mut children: Vec<Vec<usize>> = Vec::new();
 
     children.push(vec![1,2]);
@@ -324,5 +313,5 @@ fn main() {
     println!("Clusters: {:?}", con.clusters);
     println!("Mapping: {:?}", con.eve_shil.mapping);
     println!("Tree: {:?}", con.eve_shil.forest);
-    println!("Cluster_mapping: {:?}", con.cluster_mapping);
+    println!("connected(8,2): {:?}", con.eve_shil.connected(8,2));
 }
