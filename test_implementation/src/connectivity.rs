@@ -11,14 +11,12 @@ fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
 pub struct Node {
     parent: usize,
     children: Vec<usize>,
-    descendants: usize,
 }
 impl Node {
     pub fn new(parent: usize, children: Vec<usize>) -> Self {
         Node{
             parent: parent,
             children: children,
-            descendants: 0,
         }
     }
 }
@@ -58,7 +56,6 @@ impl Cluster {
     }
 }
 
-
 #[derive(Debug)]
 pub struct Connectivity {
     pub root: usize,
@@ -72,7 +69,6 @@ impl Connectivity {
     pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
         let mut nodes: Vec<Node> = compute_node_list(&parent, children, root);
         normalize(&mut nodes, root);
-        let nodes = compute_descendants(nodes, root);
         let n = nodes.len();
         println!("n = {n}");
         let z = log_floor(n as u32);
@@ -218,11 +214,6 @@ impl Connectivity {
     fn get_children(&self, node: usize) -> Iter<usize> {
         return self.nodes[node].children.iter();
     }
-
-    fn get_descendants(&self, node: usize) -> usize {
-        return self.nodes[node].descendants;
-    }
-
 }
 
 //export to graph mod
@@ -260,13 +251,6 @@ pub fn normalize(nodes: &mut Vec<Node>, root: usize) {
     }
 }
 
-fn compute_descendants(mut nodes: Vec<Node>, current: usize) -> Vec<Node> {
-    for i in nodes[current].children.clone().iter() {
-        nodes = compute_descendants(nodes, *i);
-        nodes[current].descendants += 1 + nodes[*i].descendants;
-    }
-    return nodes;
-}
 fn main() {
     let mut parent: Vec<usize> = Vec::new();    //TODO test for cases with more than one boundary node
     let mut children: Vec<Vec<usize>> = Vec::new();
