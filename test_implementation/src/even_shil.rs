@@ -26,13 +26,11 @@ impl EvenShil {     //expects the parent of a root to be itself
             component: vec![0;n],
             count: 0,
         };
-        println!("n {n}");
         tmp.component = tmp.calc_component();
         return tmp;
     }
 
     pub fn connected(&self, u: usize, v: usize) -> bool {
-        println!("comp size: {}", self.component.len());
         return self.component[u] == self.component[v];
     }
 
@@ -40,7 +38,6 @@ impl EvenShil {     //expects the parent of a root to be itself
         if self.component[u] != self.component[v] {
             return;
         }
-        self.count += 1;
 
         let mut queue: Vec<usize> = Vec::new();
         let mut visited: HashSet<usize> = HashSet::new();
@@ -53,9 +50,11 @@ impl EvenShil {     //expects the parent of a root to be itself
             visited.insert(u);
         }
         while !queue.is_empty() {
-            self.component[queue[0]] = self.count;
+            let current = queue[0];
             self.dfs_step(&mut queue, &mut visited);
+            self.component[current] = self.count;
         }
+        self.count += 1;
     }
 
     fn calc_component(&mut self) -> Vec<usize> {

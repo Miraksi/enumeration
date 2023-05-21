@@ -97,6 +97,12 @@ impl Connectivity {
         return self.even_shil.connected(u, v);
     }
 
+    pub fn macro_delete(&mut self, u: usize, v: usize) {
+        let u = self.macro_mapping[u].unwrap();
+        let v = self.macro_mapping[v].unwrap();
+        self.even_shil.delete(u,v);
+    }
+
 // algorithm from: Ambivalent data structures 
     fn cluster(&mut self, root: usize, z: usize, mut links: LinkedListSet) -> (usize, LinkedListSet) {
         let v = links.sets.len();
@@ -314,8 +320,12 @@ fn main() {
 
     parent = vec![0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17];
     println!("{}", parent.len());
-    let con = Connectivity::new(parent, children, 0);
+    let mut con = Connectivity::new(parent, children, 0);
     println!("Clusters: {:?}", con.clusters);
     println!("Tree: {:?}", con.even_shil.forest);
+    println!("comp: {:?}", con.even_shil.component);
+    println!("connected(8,2): {:?}", con.macro_connected(8,2));
+    println!("delete(1,0)");
+    con.macro_delete(1,0);
     println!("connected(8,2): {:?}", con.macro_connected(8,2));
 }
