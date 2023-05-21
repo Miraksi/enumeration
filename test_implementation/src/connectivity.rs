@@ -1,4 +1,6 @@
 use std::slice::Iter;
+use std::collections::HashMap;
+
 use even_shil::EvenShil;
 mod even_shil;
 
@@ -46,12 +48,14 @@ impl LinkedListSet {
 pub struct Cluster {
     nodes: Vec<usize>,
     bounds: Vec<usize>,
+    edge_map: HashMap<(usize, usize), usize>,
 }
 impl Cluster {
     fn new(nodes: Vec<usize>, bounds: Vec<usize>) -> Self {
         Self{
             nodes: nodes,
             bounds: bounds,
+            edge_map: HashMap::new(),
         }
     }
 }
@@ -84,6 +88,7 @@ impl Connectivity {
         };
         let (_, list) = tmp.cluster(root, z as usize, LinkedListSet::new());
         tmp.collect_cluster(0, &list);
+        tmp.fill_edge_maps();
         tmp.even_shil = EvenShil::new(tmp.build_macro_forest());
         return tmp;
     }
@@ -162,6 +167,26 @@ impl Connectivity {
             }
         }
         return bounds;
+    }
+
+    fn fill_edge_maps(&mut self) {
+        for i in 0..self.clusters.len() {
+            self.fill_cluster_map(i);
+        }
+    }
+
+    fn fill_cluster_map(&mut self, i: usize) {
+        let mut count: usize = 0;
+        for j in 0..self.clusters[i].nodes.len() {
+            let u = self.clusters[i].nodes[j];
+            for k in 0..self.nodes[u].children.len() {
+                let v = self.nodes[u].children[k];
+                if self.cluster_mapping[u].unwrap() == self.cluster_mapping[v].unwrap() {
+                    self.clusters[i].edge_map.insert((u,v), count);
+                    count += 1;
+                }
+            }
+        }
     }
 
     fn build_macro_forest(&mut self) -> Vec<even_shil::Node>{
