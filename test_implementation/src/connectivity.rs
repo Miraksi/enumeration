@@ -71,6 +71,7 @@ impl Cluster {
 pub struct Connectivity {
     pub root: usize,
     pub nodes: Vec<Node>,
+    pub edge_map: HashMap<(usize,usize),(usize,usize)>, // maps edges of input tree to internal binary tree edges if they were modified
     pub clusters: Vec<Cluster>,
     pub cluster_mapping: Vec<Option<usize>>,
     pub even_shil: EvenShil,
@@ -79,7 +80,7 @@ pub struct Connectivity {
 impl Connectivity {
     pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
         let mut nodes: Vec<Node> = compute_node_list(&parent, children, root);
-        normalize(&mut nodes, root);
+        let mapping = normalize(&mut nodes, root);
         let n = nodes.len();
         println!("n = {n}");
         let z = log_floor(n as u32);
@@ -88,6 +89,7 @@ impl Connectivity {
         let mut tmp = Connectivity{
             root: root,
             nodes: nodes,
+            edge_map: mapping,
             clusters: Vec::new(),
             cluster_mapping: vec![None; n],
             even_shil: EvenShil::new(Vec::new()),
@@ -101,6 +103,8 @@ impl Connectivity {
     }
 
     pub fn connected(&self, u: usize, v: usize) -> bool {
+        let (u,v) = self.get_bin_edge(u,v);
+
         if self.cluster_mapping[u] == self.cluster_mapping[v] {
             return self.micro_connected(self.cluster_mapping[u].unwrap(), u, v);
         }
@@ -118,6 +122,8 @@ impl Connectivity {
     }
 
     pub fn delete(&mut self, u: usize, v: usize) {
+        let (u,v) = self.get_bin_edge(u,v);
+
         if self.cluster_mapping[u] != self.cluster_mapping[v] {
             self.macro_delete(u,v);
             return;
@@ -341,6 +347,17 @@ impl Connectivity {
     fn get_children(&self, node: usize) -> Iter<usize> {
         return self.nodes[node].children.iter();
     }
+
+    // expects an edge in the original input tree
+    fn get_bin_edge(&self, u: usize, v: usize) -> (usize, usize) {
+        if let Some(x) = self.edge_map.get(&(u,v)) {
+            return *x;
+        }
+        match self.edge_map.get(&(v,u)) {
+            Some(x) => return *x,
+            None => return (u,v),
+        };
+    }
 }
 
 //export to graph mod
@@ -354,7 +371,9 @@ pub fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>, root: u
     return list;
 }
 
-pub fn normalize(nodes: &mut Vec<Node>, root: usize) {
+// brings the tree into binary tree shape
+pub fn normalize(nodes: &mut Vec<Node>, root: usize) -> HashMap<(usize,usize),(usize, usize)> {  
+    let mut edge_map: HashMap<(usize,usize),(usize, usize)> = HashMap::new();
     let mut queue: Vec<usize> = vec![root];
     while !queue.is_empty() {
         let current = queue.pop().unwrap();
@@ -367,6 +386,7 @@ pub fn normalize(nodes: &mut Vec<Node>, root: usize) {
         let first_added = nodes.len();
         for i in 1..nodes[current].children.len() {
             let child = nodes[current].children[i];
+            edge_map.insert((current, child), (nodes.len(), child));
             nodes[child].parent = nodes.len();
             let tmp = Node::new(nodes.len()-1, vec![child, nodes.len()+1]);
             nodes.push(tmp);
@@ -376,6 +396,7 @@ pub fn normalize(nodes: &mut Vec<Node>, root: usize) {
         nodes[last].children.pop();
         nodes[current].children = vec![nodes[current].children[0], first_added];
     }
+    return edge_map;
 }
 
 fn main() {
@@ -409,12 +430,12 @@ fn main() {
     println!("Tree: {:?}\n", con.even_shil.forest);
     println!("connected(0,16): {}", con.connected(0,16));
     println!("connected(0,4): {}", con.connected(0,4));
-    con.delete(20,21);
-    println!("delete(20,21)");
+    con.delete(0,1);
+    println!("delete(0,1)");
     println!("connected(0,16): {}", con.connected(0,16));
     println!("connected(0,4): {}", con.connected(0,4));
-    con.macro_delete(17,18);
-    println!("delete(17,18)");
+    con.delete(0,4);
+    println!("delete(0,4)");
     println!("connected(0,4): {}", con.connected(0,4));
 
 }
