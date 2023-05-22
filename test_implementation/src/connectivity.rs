@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use even_shil::EvenShil;
 mod even_shil;
-
+// TODO CLEAN THE COOODDEEEE
 
 fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
     return u32::BITS - x.leading_zeros() - 1;
@@ -100,6 +100,39 @@ impl Connectivity {
         return tmp;
     }
 
+    pub fn connected(&self, u: usize, v: usize) -> bool {
+        if self.cluster_mapping[u] == self.cluster_mapping[v] {
+            return self.micro_connected(self.cluster_mapping[u].unwrap(), u, v);
+        }
+        let u_bounds = self.get_connected_bounds(u);
+        let v_bounds = self.get_connected_bounds(v);
+
+        for i in u_bounds.iter() {
+            for j in v_bounds.iter() {
+                if self.macro_connected(*i,*j) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    pub fn delete(&mut self, u: usize, v: usize) {
+        if self.cluster_mapping[u] != self.cluster_mapping[v] {
+            self.macro_delete(u,v);
+            return;
+        }
+        let cluster = self.cluster_mapping[u].unwrap();
+        self.micro_delete(cluster, u, v);
+        if self.clusters[cluster].bounds.len() == 2 {
+            let fst = self.clusters[cluster].bounds[0];
+            let snd = self.clusters[cluster].bounds[1];
+            if !self.micro_connected(cluster, fst, snd) {
+                self.macro_delete(fst, snd);
+            }
+        }
+    }
+
     pub fn macro_connected(&self, u: usize, v: usize) -> bool {
         let u = self.macro_mapping[u].unwrap();
         let v = self.macro_mapping[v].unwrap();
@@ -122,14 +155,25 @@ impl Connectivity {
     pub fn micro_delete(&mut self, idx: usize, u: usize, v: usize) {
         let mut parent = u;
         let mut child = v;
-        if self.get_parent(u) == v [
+        if self.get_parent(u) == v {
             parent = v;
             child = u;
-        ]
+        }
         let edge_idx = self.clusters[idx].edge_map.get(&(parent, child)).unwrap();
         if self.clusters[idx].current_edges & 1 << *edge_idx > 0 {
             self.clusters[idx].current_edges -= 1 << *edge_idx;
         }
+    }
+
+    fn get_connected_bounds(&self, u: usize) -> Vec<usize> {
+        let i = self.cluster_mapping[u].unwrap();
+        let mut list: Vec<usize> = Vec::new();
+        for bound in self.clusters[i].bounds.iter() {
+            if self.micro_connected(i, u, *bound) {
+                list.push(*bound);
+            }
+        }
+        return list;
     }
 
 // algorithm from: Ambivalent data structures 
@@ -362,16 +406,15 @@ fn main() {
     println!("Nodes: {:?}\n", con.nodes);
     println!("Clusters: {:?}\n", con.clusters);
     println!("ClusterMapping: {:?}\n", con.cluster_mapping);
-    // println!("Tree: {:?}\n", con.even_shil.forest);
-    // println!("comp: {:?}\n", con.even_shil.component);
-    // con.macro_delete(20,21);
-    // println!("delete(20,21)");
-    // println!("comp: {:?}\n", con.even_shil.component);
-    // con.macro_delete(18,19);
-    // println!("delete(18,19)");
-    // println!("comp: {:?}\n", con.even_shil.component);
-    // println!("micro_connected(30,16): {}", con.micro_connected(0,30,16));
-    // println!("delete(31,16)");
-    // con.micro_delete(0,31,16);
-    // println!("micro_connected(30,16): {}", con.micro_connected(0,30,16));
+    println!("Tree: {:?}\n", con.even_shil.forest);
+    println!("connected(0,16): {}", con.connected(0,16));
+    println!("connected(0,4): {}", con.connected(0,4));
+    con.delete(20,21);
+    println!("delete(20,21)");
+    println!("connected(0,16): {}", con.connected(0,16));
+    println!("connected(0,4): {}", con.connected(0,4));
+    con.macro_delete(17,18);
+    println!("delete(17,18)");
+    println!("connected(0,4): {}", con.connected(0,4));
+
 }
