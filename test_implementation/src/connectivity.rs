@@ -46,16 +46,23 @@ impl LinkedListSet {
 
 #[derive(Debug)]
 pub struct Cluster {
+    root: usize,
     nodes: Vec<usize>,
     bounds: Vec<usize>,
     edge_map: HashMap<(usize, usize), usize>,
+    current_edges: usize,
+    root_path: HashMap<usize, usize>,
 }
 impl Cluster {
-    fn new(nodes: Vec<usize>, bounds: Vec<usize>) -> Self {
+    fn new(root: usize, nodes: Vec<usize>, bounds: Vec<usize>) -> Self {
+        let size = nodes.len();
         Self{
+            root: root,
             nodes: nodes,
             bounds: bounds,
             edge_map: HashMap::new(),
+            current_edges: (1 << size-1) -1,
+            root_path: HashMap::from([(root, 0)]),
         }
     }
 }
@@ -88,7 +95,7 @@ impl Connectivity {
         };
         let (_, list) = tmp.cluster(root, z as usize, LinkedListSet::new());
         tmp.collect_cluster(0, &list);
-        tmp.fill_edge_maps();
+        tmp.fill_clusters();
         tmp.even_shil = EvenShil::new(tmp.build_macro_forest());
         return tmp;
     }
@@ -103,6 +110,26 @@ impl Connectivity {
         let u = self.macro_mapping[u].unwrap();
         let v = self.macro_mapping[v].unwrap();
         self.even_shil.delete(u,v);
+    }
+
+    pub fn micro_connected(&self, idx: usize, u: usize, v: usize) -> bool {
+        let cluster = &self.clusters[idx];
+        let u_rp = cluster.root_path.get(&u).unwrap();
+        let v_rp = cluster.root_path.get(&v).unwrap();
+        return ((*u_rp ^ *v_rp) & !cluster.current_edges) == 0;
+    }
+
+    pub fn micro_delete(&mut self, idx: usize, u: usize, v: usize) {
+        let mut parent = u;
+        let mut child = v;
+        if self.get_parent(u) == v [
+            parent = v;
+            child = u;
+        ]
+        let edge_idx = self.clusters[idx].edge_map.get(&(parent, child)).unwrap();
+        if self.clusters[idx].current_edges & 1 << *edge_idx > 0 {
+            self.clusters[idx].current_edges -= 1 << *edge_idx;
+        }
     }
 
 // algorithm from: Ambivalent data structures 
@@ -136,19 +163,25 @@ impl Connectivity {
         return (v, links);
     }
 
-    fn collect_cluster(&mut self, mut current: usize, links: &LinkedListSet) {
+    fn collect_cluster(&mut self, mut i: usize, links: &LinkedListSet) {
         let cluster_idx = self.clusters.len();
         let mut nodes: Vec<usize> = Vec::new();
         loop {
-            nodes.push(links.sets[current]);
-            self.cluster_mapping[links.sets[current]] = Some(cluster_idx);
-            match links.next[current] {
+            nodes.push(links.sets[i]);
+            self.cluster_mapping[links.sets[i]] = Some(cluster_idx);
+            match links.next[i] {
                 None => break,
-                Some(i) => current = i,
+                Some(j) => i = j,
             };
         }
+        let mut root = nodes[0];
+        for n in nodes.iter() {
+            if self.cluster_mapping[*n] != self.cluster_mapping[self.get_parent(*n)] {
+                root = *n;
+            }
+        }
         let bounds = self.compute_bounds(&nodes);
-        self.clusters.push(Cluster::new(nodes, bounds));
+        self.clusters.push(Cluster::new(root, nodes, bounds));
     }
 
     fn compute_bounds(&mut self, nodes: &Vec<usize>) -> Vec<usize> {
@@ -169,9 +202,10 @@ impl Connectivity {
         return bounds;
     }
 
-    fn fill_edge_maps(&mut self) {
+    fn fill_clusters(&mut self) {
         for i in 0..self.clusters.len() {
             self.fill_cluster_map(i);
+            self.fill_rootpath(i);
         }
     }
 
@@ -184,6 +218,30 @@ impl Connectivity {
                 if self.cluster_mapping[u].unwrap() == self.cluster_mapping[v].unwrap() {
                     self.clusters[i].edge_map.insert((u,v), count);
                     count += 1;
+                }
+            }
+        }
+    }
+
+    fn fill_rootpath(&mut self, i: usize) {
+        let root = self.clusters[i].root;
+        let mut queue: Vec<usize> = Vec::new();
+        for child in self.get_children(root) {
+            if self.cluster_mapping[root] == self.cluster_mapping[*child] {
+                queue.push(*child);
+            }
+        }
+
+        while !queue.is_empty() {
+            let current = queue.pop().unwrap();
+            let parent = self.get_parent(current);
+            let parent_path: usize = *self.clusters[i].root_path.get(&parent).unwrap();
+            let edge_idx: usize = *self.clusters[i].edge_map.get(&(parent,current)).unwrap();
+            self.clusters[i].root_path.insert(current, parent_path + (1 << edge_idx));
+
+            for child in self.get_children(current) {
+                if self.cluster_mapping[current] == self.cluster_mapping[*child] {
+                    queue.push(*child);
                 }
             }
         }
@@ -277,7 +335,7 @@ pub fn normalize(nodes: &mut Vec<Node>, root: usize) {
 }
 
 fn main() {
-    let mut parent: Vec<usize> = Vec::new();    //TODO test for cases with more than one boundary node
+    
     let mut children: Vec<Vec<usize>> = Vec::new();
 
     children.push(vec![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]);
@@ -298,17 +356,22 @@ fn main() {
     children.push(Vec::new());
     children.push(Vec::new());
 
-    parent = vec![0;children.len()];
+    let parent = vec![0;children.len()];   //TODO test for cases with more than one boundary node
+    
     let mut con = Connectivity::new(parent, children, 0);
     println!("Nodes: {:?}\n", con.nodes);
     println!("Clusters: {:?}\n", con.clusters);
-    println!("Mapping: {:?}\n", con.macro_mapping);
-    println!("Tree: {:?}\n", con.even_shil.forest);
-    println!("comp: {:?}\n", con.even_shil.component);
-    con.macro_delete(20,21);
-    println!("delete(20,21)");
-    println!("comp: {:?}\n", con.even_shil.component);
-    con.macro_delete(18,19);
-    println!("delete(18,19)");
-    println!("comp: {:?}\n", con.even_shil.component);
+    println!("ClusterMapping: {:?}\n", con.cluster_mapping);
+    // println!("Tree: {:?}\n", con.even_shil.forest);
+    // println!("comp: {:?}\n", con.even_shil.component);
+    // con.macro_delete(20,21);
+    // println!("delete(20,21)");
+    // println!("comp: {:?}\n", con.even_shil.component);
+    // con.macro_delete(18,19);
+    // println!("delete(18,19)");
+    // println!("comp: {:?}\n", con.even_shil.component);
+    // println!("micro_connected(30,16): {}", con.micro_connected(0,30,16));
+    // println!("delete(31,16)");
+    // con.micro_delete(0,31,16);
+    // println!("micro_connected(30,16): {}", con.micro_connected(0,30,16));
 }
