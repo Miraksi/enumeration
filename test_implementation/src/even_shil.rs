@@ -14,9 +14,9 @@ impl Node {
 // used Wikipedia as reference https://en.wikipedia.org/wiki/Dynamic_connectivity
 #[derive(Debug)]
 pub struct EvenShil {
-    pub forest: Vec<Node>,
-    pub component: Vec<usize>,
-    pub count: usize,
+    forest: Vec<Node>,
+    component: Vec<usize>,
+    count: usize,
 }
 impl EvenShil {     //expects the parent of a root to be itself
     pub fn new(forest: Vec<Node>) -> Self {   
@@ -55,6 +55,10 @@ impl EvenShil {     //expects the parent of a root to be itself
             self.component[current] = self.count;
         }
         self.count += 1;
+    }
+
+    pub fn get_component(&self, u: usize) -> usize {
+        return self.component[u];
     }
 
     fn calc_component(&mut self) -> Vec<usize> {

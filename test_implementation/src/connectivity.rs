@@ -9,6 +9,20 @@ fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
     return u32::BITS - x.leading_zeros() - 1;
 }
 
+pub enum Component {
+    Macro(usize),
+    Micro(usize, usize),
+}
+impl PartialEq for Component {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Component::Macro(x), Component::Macro(y)) => *x == *y,
+            (Component::Micro(i,x), Component::Micro(j,y)) => (*i == *j) && (*x & *y > 0),
+            (_,_) => false,
+        }
+    }
+}
+
 #[derive(Clone,Debug)]
 pub struct Node {
     parent: usize,
@@ -139,26 +153,38 @@ impl Connectivity {
         }
     }
 
-    pub fn macro_connected(&self, u: usize, v: usize) -> bool {
+    pub fn get_component(&self, u: usize) -> Component {
+        let cluster = self.cluster_mapping[u].unwrap();
+        for bound in self.clusters[cluster].bounds.iter() {
+            if self.connected(cluster, *bound) {
+                return Component::Macro(self.even_shil.get_component(*bound));
+            }
+        }
+        let mut root_path = *self.clusters[cluster].root_path.get(&u).unwrap();
+        root_path &= self.clusters[cluster].current_edges;
+        return Component::Micro(cluster, root_path);
+    }
+
+    fn macro_connected(&self, u: usize, v: usize) -> bool {
         let u = self.macro_mapping[u].unwrap();
         let v = self.macro_mapping[v].unwrap();
         return self.even_shil.connected(u, v);
     }
 
-    pub fn macro_delete(&mut self, u: usize, v: usize) {
+    fn macro_delete(&mut self, u: usize, v: usize) {
         let u = self.macro_mapping[u].unwrap();
         let v = self.macro_mapping[v].unwrap();
         self.even_shil.delete(u,v);
     }
 
-    pub fn micro_connected(&self, idx: usize, u: usize, v: usize) -> bool {
+    fn micro_connected(&self, idx: usize, u: usize, v: usize) -> bool {
         let cluster = &self.clusters[idx];
         let u_rp = cluster.root_path.get(&u).unwrap();
         let v_rp = cluster.root_path.get(&v).unwrap();
         return ((*u_rp ^ *v_rp) & !cluster.current_edges) == 0;
     }
 
-    pub fn micro_delete(&mut self, idx: usize, u: usize, v: usize) {
+    fn micro_delete(&mut self, idx: usize, u: usize, v: usize) {
         let mut parent = u;
         let mut child = v;
         if self.get_parent(u) == v {
@@ -427,7 +453,6 @@ fn main() {
     println!("Nodes: {:?}\n", con.nodes);
     println!("Clusters: {:?}\n", con.clusters);
     println!("ClusterMapping: {:?}\n", con.cluster_mapping);
-    println!("Tree: {:?}\n", con.even_shil.forest);
     println!("connected(0,16): {}", con.connected(0,16));
     println!("connected(0,4): {}", con.connected(0,4));
     con.delete(0,1);
