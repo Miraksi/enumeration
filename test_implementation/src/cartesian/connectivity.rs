@@ -88,17 +88,16 @@ pub struct Connectivity {
     pub edge_map: HashMap<(usize,usize),(usize,usize)>, // maps edges of input tree to internal binary tree edges if they were modified
     pub clusters: Vec<Cluster>,
     pub cluster_mapping: Vec<Option<usize>>,
+    pub root_path: Vec<usize>,
     pub even_shil: EvenShil,
     pub macro_mapping: Vec<Option<usize>>,
 }
 impl Connectivity {
-    pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
-        let mut nodes: Vec<Node> = compute_node_list(&parent, children, root);
+    pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
+        let mut nodes: Vec<Node> = compute_node_list(parent, children, root);
         let mapping = normalize(&mut nodes, root);
         let n = nodes.len();
-        println!("n = {n}");
         let z = log_floor(n as u32);
-        println!("z = {z}\n");
 
         let mut tmp = Connectivity{
             root: root,
@@ -106,6 +105,7 @@ impl Connectivity {
             edge_map: mapping,
             clusters: Vec::new(),
             cluster_mapping: vec![None; n],
+            root_path: vec![0; n],
             even_shil: EvenShil::new(Vec::new()),
             macro_mapping: vec![None; n],
         };
@@ -160,9 +160,8 @@ impl Connectivity {
                 return Component::Macro(self.even_shil.get_component(*bound));
             }
         }
-        let mut root_path = *self.clusters[cluster].root_path.get(&u).unwrap();
-        root_path &= self.clusters[cluster].current_edges;
-        return Component::Micro(cluster, root_path);
+        let identifier = self.root_path[u] & !self.clusters[cluster].current_edges;     
+        return Component::Micro(cluster, identifier); //this should be unique for every connected component
     }
 
     fn macro_connected(&self, u: usize, v: usize) -> bool {
@@ -179,9 +178,9 @@ impl Connectivity {
 
     fn micro_connected(&self, idx: usize, u: usize, v: usize) -> bool {
         let cluster = &self.clusters[idx];
-        let u_rp = cluster.root_path.get(&u).unwrap();
-        let v_rp = cluster.root_path.get(&v).unwrap();
-        return ((*u_rp ^ *v_rp) & !cluster.current_edges) == 0;
+        let u_rp = self.root_path[u];
+        let v_rp = self.root_path[v];
+        return ((u_rp ^ v_rp) & !cluster.current_edges) == 0;
     }
 
     fn micro_delete(&mut self, idx: usize, u: usize, v: usize) {
@@ -311,9 +310,9 @@ impl Connectivity {
         while !queue.is_empty() {
             let current = queue.pop().unwrap();
             let parent = self.get_parent(current);
-            let parent_path: usize = *self.clusters[i].root_path.get(&parent).unwrap();
+            let parent_path: usize = self.root_path[parent];
             let edge_idx: usize = *self.clusters[i].edge_map.get(&(parent,current)).unwrap();
-            self.clusters[i].root_path.insert(current, parent_path + (1 << edge_idx));
+            self.root_path[current] = parent_path + (1 << edge_idx);
 
             for child in self.get_children(current) {
                 if self.cluster_mapping[current] == self.cluster_mapping[*child] {
@@ -387,7 +386,7 @@ impl Connectivity {
 }
 
 //export to graph mod
-pub fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Vec<Node> {   
+pub fn compute_node_list(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Vec<Node> {   
     let mut list: Vec<Node> = Vec::new();
     for i in 0..parent.len() {
         let node = Node::new(parent[i], children[i].clone());
@@ -449,7 +448,7 @@ fn main() {
 
     let parent = vec![0;children.len()];   //TODO test for cases with more than one boundary node
     
-    let mut con = Connectivity::new(parent, children, 0);
+    let mut con = Connectivity::new(&parent, &children, 0);
     println!("Nodes: {:?}\n", con.nodes);
     println!("Clusters: {:?}\n", con.clusters);
     println!("ClusterMapping: {:?}\n", con.cluster_mapping);
