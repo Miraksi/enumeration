@@ -1,6 +1,6 @@
-mod cartesian;
+mod beq;
 
-use cartesian::{cartesian_on_tree};
+use beq::cartesian::{cartesian_on_tree};
 use std::collections::HashMap;
 
 fn main() {
@@ -21,11 +21,11 @@ fn main() {
 
     let parent = vec![0,0,0,1,1,1,2,2,3,4,4,4];
     let mut weights : Vec<Vec<usize>> = vec![Vec::new(); children.len()];
-    weights[0] = vec![2,1];
-    weights[1] = vec![2,1,3];
+    weights[0] = vec![8,1];
+    weights[1] = vec![7,1,9];
     weights[2] = vec![1,4];
     weights[3] = vec![5];
-    weights[4] = vec![1,3,3];
+    weights[4] = vec![1,6,3];
 
     println!("\n\nCartesian Tree\n{:?}",cartesian_on_tree(&parent, &children, &weights, 0));
 }
