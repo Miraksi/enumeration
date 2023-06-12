@@ -9,19 +9,32 @@ fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
     return u32::BITS - x.leading_zeros() - 1;
 }
 
-pub enum Component {
+#[derive(Debug, PartialEq, Eq, Hash)]       //TODO check, if Hash needs to be derived
+enum CompID {
     Macro(usize),
-    Micro(usize, usize),
+    Micro(usize, usize)
 }
-impl PartialEq for Component {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Component::Macro(x), Component::Macro(y)) => *x == *y,
-            (Component::Micro(i,x), Component::Micro(j,y)) => (*i == *j) && (*x & *y > 0),
-            (_,_) => false,
+
+#[derive(Debug)]
+enum Side {
+    Left,
+    Right,
+}
+
+#[derive(Debug)]
+pub struct Component {
+    parent: Option<usize>,
+    side: Option<Side>,
+}
+impl Component {
+    fn new() -> Self {
+        Self{
+            parent: None,
+            side: None,
         }
     }
 }
+
 
 #[derive(Clone,Debug)]
 pub struct Node {
@@ -91,6 +104,8 @@ pub struct Connectivity {
     pub root_path: Vec<usize>,
     pub even_shil: EvenShil,
     pub macro_mapping: Vec<Option<usize>>,
+    pub comp_list: Vec<Component>,
+    comp_mapping: HashMap<CompID, usize>,  //TODO rewrite this to not need a HashMap
 }
 impl Connectivity {
     pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
@@ -108,6 +123,8 @@ impl Connectivity {
             root_path: vec![0; n],
             even_shil: EvenShil::new(Vec::new()),
             macro_mapping: vec![None; n],
+            comp_list: vec![Component::new()],
+            comp_mapping: HashMap::from([(CompID::Macro(0), 0)]),
         };
         let (_, list) = tmp.cluster(root, z as usize, LinkedListSet::new());
         tmp.collect_cluster(0, &list);
@@ -142,26 +159,35 @@ impl Connectivity {
             self.macro_delete(u,v);
             return;
         }
-        let cluster = self.cluster_mapping[u].unwrap();
-        self.micro_delete(cluster, u, v);
-        if self.clusters[cluster].bounds.len() == 2 {
-            let fst = self.clusters[cluster].bounds[0];
-            let snd = self.clusters[cluster].bounds[1];
-            if !self.micro_connected(cluster, fst, snd) {
-                self.macro_delete(fst, snd);
+        else {
+            let cluster = self.cluster_mapping[u].unwrap();
+            self.micro_delete(cluster, u, v);
+            if self.clusters[cluster].bounds.len() == 2 {
+                let fst = self.clusters[cluster].bounds[0];
+                let snd = self.clusters[cluster].bounds[1];
+                if !self.micro_connected(cluster, fst, snd) {
+                    self.macro_delete(fst, snd);
+                }
             }
         }
+        self.add_component(u,v);
     }
 
-    pub fn get_component(&self, u: usize) -> Component {
+    pub fn get_comp_id(&self, u: usize) -> CompID {
         let cluster = self.cluster_mapping[u].unwrap();
         for bound in self.clusters[cluster].bounds.iter() {
             if self.connected(cluster, *bound) {
-                return Component::Macro(self.even_shil.get_component(*bound));
+                let macro_node = self.macro_mapping[*bound].unwrap();
+                return CompID::Macro(self.even_shil.get_component(macro_node));
             }
         }
         let identifier = self.root_path[u] & !self.clusters[cluster].current_edges;     
-        return Component::Micro(cluster, identifier); //this should be unique for every connected component
+        return CompID::Micro(cluster, identifier); //this should be unique for every connected component
+    }
+
+    pub fn get_comp_idx(&self, u: usize) -> usize {
+        println!("for u: {} we have CompID: {:?}", u, self.get_comp_id(u));
+        return *self.comp_mapping.get(&self.get_comp_id(u)).unwrap();
     }
 
     fn macro_connected(&self, u: usize, v: usize) -> bool {
@@ -363,6 +389,21 @@ impl Connectivity {
         let v_idx = self.macro_mapping[v].unwrap();
         forest[u_idx].adjacent.push(v_idx);
         forest[v_idx].adjacent.push(u_idx);
+    }
+
+    fn add_component(&mut self, u: usize, v: usize) {
+        let u_comp = self.get_comp_id(u);
+        let v_comp = self.get_comp_id(v);
+        println!("adding either {:?} or {:?}", u_comp, v_comp);
+        let len = self.comp_list.len();
+        
+        if !self.comp_mapping.contains_key(&u_comp) {
+            self.comp_mapping.insert(u_comp, len);
+        }
+        if !self.comp_mapping.contains_key(&v_comp) {
+            self.comp_mapping.insert(v_comp, len);
+        }
+        self.comp_list.push(Component::new());
     }
 
     fn get_parent(&self, node: usize) -> usize {
