@@ -40,9 +40,9 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
         let len = c_tree.len();
         let mut tmp = Node::new(len, None, None, *weight);
         let comp_idx = con.get_comp_idx(*u);
-        if let Some(x) = con.comp_list[*u].parent {
+        if let Some(x) = con.comp_list[comp_idx].parent {
             tmp.parent = x;
-            match con.comp_list[*u].side {
+            match con.comp_list[comp_idx].side {
                 Some(x) => side_list[len] = Some(x),
                 _ => panic!("no side found"),
             };

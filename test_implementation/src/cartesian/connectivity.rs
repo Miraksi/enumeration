@@ -157,7 +157,6 @@ impl Connectivity {
 
         if self.cluster_mapping[u] != self.cluster_mapping[v] {
             self.macro_delete(u,v);
-            return;
         }
         else {
             let cluster = self.cluster_mapping[u].unwrap();
