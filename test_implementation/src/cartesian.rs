@@ -2,7 +2,7 @@ extern crate rdxsort;
 mod connectivity;
 
 use rdxsort::*;
-use connectivity::{Connectivity, Component};
+use connectivity::{Connectivity, Component, Side};
 
 #[derive(Clone,Debug)]
 pub struct Node {
@@ -22,10 +22,11 @@ impl Node {
     }
 }
 
-pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Vec<usize>>, root: usize) {
+pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Vec<usize>>, root: usize) -> Vec<Node>{
     let mut con = Connectivity::new(parent, children, root);
     let mut edge_lst: Vec<(usize,(usize, usize))> = Vec::new();
     let mut c_tree: Vec<Node> = Vec::new();
+    let mut side_list: Vec<Option<Side>> = vec![None; parent.len()];
     
 
     for i in 0..children.len() {
@@ -34,22 +35,41 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
         }
     }
     edge_lst.rdxsort();
-    println!("Weighted edges: {:?}", edge_lst);
 
-    for (w,(u,v)) in edge_lst.iter() {
+    for (weight,(u,v)) in edge_lst.iter() {
         let len = c_tree.len();
-        let mut tmp = Node::new(len, None, None, *w);
+        let mut tmp = Node::new(len, None, None, *weight);
         let comp_idx = con.get_comp_idx(*u);
-        // if let Some(x) = con.comp_list[*u].parent {
-        //     tmp.parent = x;
-        //     match comp_list[*u].side {
-        //         Some(Side::Left) => c_tree[x].left = Some(len),
-        //         Some(Side::Right) => c_tree[x].right = Some(len),
-        //         _ => panic!("no side found"),
-        //     };
-        // }
+        if let Some(x) = con.comp_list[*u].parent {
+            tmp.parent = x;
+            match con.comp_list[*u].side {
+                Some(x) => side_list[len] = Some(x),
+                _ => panic!("no side found"),
+            };
+        }
         c_tree.push(tmp);
 
+        println!("deleting ({}, {})", *u, *v);
         con.delete(*u, *v);
+
+        let u_idx = con.get_comp_idx(*u);
+        con.comp_list[u_idx].parent = Some(len);
+        con.comp_list[u_idx].side = Some(Side::Left);
+        let v_idx = con.get_comp_idx(*v);
+        con.comp_list[v_idx].parent = Some(len);
+        con.comp_list[v_idx].side = Some(Side::Right);
     }
+
+    for i in 0..c_tree.len() {
+        let p = c_tree[i].parent;
+        if p == i {
+            continue;
+        }
+        match side_list[i] {
+            Some(Side::Left) => c_tree[p].left = Some(i),
+            Some(Side::Right) => c_tree[p].right = Some(i),
+            None => panic!("node has no side"),
+        };
+    }
+    return c_tree;
 }

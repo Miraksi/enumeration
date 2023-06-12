@@ -15,16 +15,16 @@ enum CompID {
     Micro(usize, usize)
 }
 
-#[derive(Debug)]
-enum Side {
+#[derive(Debug, Clone, Copy)]
+pub enum Side {
     Left,
     Right,
 }
 
 #[derive(Debug)]
 pub struct Component {
-    parent: Option<usize>,
-    side: Option<Side>,
+    pub parent: Option<usize>,
+    pub side: Option<Side>,
 }
 impl Component {
     fn new() -> Self {
@@ -176,7 +176,7 @@ impl Connectivity {
     pub fn get_comp_id(&self, u: usize) -> CompID {
         let cluster = self.cluster_mapping[u].unwrap();
         for bound in self.clusters[cluster].bounds.iter() {
-            if self.connected(cluster, *bound) {
+            if self.connected(u, *bound) {
                 let macro_node = self.macro_mapping[*bound].unwrap();
                 return CompID::Macro(self.even_shil.get_component(macro_node));
             }
@@ -186,7 +186,7 @@ impl Connectivity {
     }
 
     pub fn get_comp_idx(&self, u: usize) -> usize {
-        println!("for u: {} we have CompID: {:?}", u, self.get_comp_id(u));
+        //println!("for u: {} we have CompID: {:?}", u, self.get_comp_id(u));
         return *self.comp_mapping.get(&self.get_comp_id(u)).unwrap();
     }
 
@@ -394,7 +394,6 @@ impl Connectivity {
     fn add_component(&mut self, u: usize, v: usize) {
         let u_comp = self.get_comp_id(u);
         let v_comp = self.get_comp_id(v);
-        println!("adding either {:?} or {:?}", u_comp, v_comp);
         let len = self.comp_list.len();
         
         if !self.comp_mapping.contains_key(&u_comp) {

@@ -30,5 +30,5 @@ fn main() {
     weights[0][2] = 4;
     weights[0][6] = 2;
 
-    cartesian_on_tree(&parent, &children, &weights, 0);
+    println!("\n\nCartesian Tree\n{:?}",cartesian_on_tree(&parent, &children, &weights, 0));
 }
