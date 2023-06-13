@@ -14,7 +14,7 @@ pub struct RMQ {
 }
 // TODO change other constuctors
 impl RMQ {
-    fn new(input: Vec<u32>) -> Self {
+    pub fn new(input: Vec<u32>) -> Self {
         let n = input.len() as u32;
         let k = log_floor(n)/ 2;        
         let mut new = Self {
@@ -71,7 +71,7 @@ impl RMQ {
         }
     }
 
-    fn get(&self, mut l: usize, mut r: usize) -> usize { 
+    pub fn get(&self, mut l: usize, mut r: usize) -> usize { 
         if l > r {
             let tmp = l;
             l = r;
