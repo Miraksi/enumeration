@@ -64,7 +64,7 @@ impl RMQ {
         }
     }
 
-    fn get(&self, l: usize, r: usize) -> u32 {
+    fn get(&self, l: usize, r: usize) -> u32 { // does this expect l < r ?
         let block_l = l/self.k ;
         let block_r = r/self.k ;
         let l_suffix = self.get_in_block(block_l, l % self.k, self.k - 1);
