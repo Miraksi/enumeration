@@ -31,6 +31,7 @@ impl RMQ {
         new.build_sparse();
         new.fill_block_rmq();
         new.precompute_masks();
+        println!("RMQ-DATA-STRUCTURE---------\ninput: {:?}\nsparse-idx: {:?}\n-------------------", new.input, new.sparse_idx);
         return new;
     }
     fn calc_block_min(&mut self) {
@@ -61,7 +62,7 @@ impl RMQ {
             self.sparse_idx[0].push(*x);
         }
         let m = self.block_min_idx.len();
-        for loglen in 1..(log_floor(m as u32) as usize) {
+        for loglen in 1..=(log_floor(m as u32) as usize) {
             for i in 0..= m - (1 << loglen) {
                 let a = self.sparse_idx[loglen-1][i];
                 let b = self.sparse_idx[loglen-1][i + (1 << (loglen - 1))];
@@ -72,6 +73,7 @@ impl RMQ {
     }
 
     pub fn get(&self, mut l: usize, mut r: usize) -> usize { 
+        println!("RMQ({},{})", l, r);
         if l > r {
             let tmp = l;
             l = r;
@@ -187,9 +189,8 @@ fn bitmask_to_array(k: usize, mut mask: u32) -> Vec<i32> {
 
 
 fn main() { 
-    let rmq = RMQ::new(vec![0,1,2,1,2,3,4,5,4,5,4,3,2,3,4,5,6,7,8,9,8,7,6,5,7,6,5,6,7,8,9,10,9,8,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,3,4,3,4]);
-    println!("Hi");
+    let rmq = RMQ::new(vec![0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 2, 3, 2, 1, 2, 1, 0, 1, 2, 1, 2, 1, 0]);
     println!("For k={} Blocks we get the minima={:?}",rmq.k, rmq.block_min);
     println!("{:?}", rmq.block_rmq);
-    println!("get(0,4) {:?}", rmq.get(24,17));
+    println!("get(0,4) {:?}", rmq.get(22,3));
 }

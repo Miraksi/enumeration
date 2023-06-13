@@ -1,5 +1,5 @@
 pub mod cartesian;
-mod lca;
+pub mod lca;
 
 use cartesian::{Node, cartesian_on_tree};
 
