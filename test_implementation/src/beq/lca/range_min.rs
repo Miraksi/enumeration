@@ -2,7 +2,7 @@ fn log_floor(x: u32) -> u32 {
     return u32::BITS - x.leading_zeros() - 1;
 }
 // maybe add lifetimes
-struct RMQ {
+pub struct RMQ {
     input: Vec<u32>,
     n: usize, 
     k: usize,

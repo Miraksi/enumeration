@@ -1,3 +1,7 @@
+mod range_min;
+
+use range_min::RMQ;
+
 struct LCA {
     root: usize,
     parent: Vec<usize>,
