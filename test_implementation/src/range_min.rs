@@ -7,7 +7,9 @@ struct RMQ {
     n: usize, 
     k: usize,
     block_min: Vec<u32>,
+    block_min_idx: Vec<usize>,
     sparse_table: Vec<Vec<u32>>,
+    sparse_idx: Vec<Vec<usize>>,
     block_rmq: Vec<Vec<Vec<usize>>>,
     block_mask: Vec<u32>,
 }
@@ -21,7 +23,9 @@ impl RMQ {
             n: n as usize,
             k: k as usize,
             block_min: Vec::new(),
+            block_min_idx: Vec::new(),
             sparse_table: vec![Vec::new();log_floor(n) as usize],
+            sparse_idx: vec![Vec::new();log_floor(n) as usize],
             block_rmq: Vec::new(),
             block_mask: Vec::new(),
         };
@@ -33,39 +37,43 @@ impl RMQ {
     }
     fn calc_block_min(&mut self) {
         for i in 0..(self.n + self.k -1) / self.k {
-            let min = self.calc_min(i*self.k);
+            let (min, min_idx) = self.calc_min(i*self.k);
             self.block_min.push(min);
+            self.block_min_idx.push(min_idx)
         }
     }
 
-    fn calc_min(&mut self, i: usize) -> u32{
+    fn calc_min(&mut self, i: usize) -> (u32, usize) {
         let mut current_min = u32::MAX;
+        let mut min_idx: usize = i;
         for j in i..i + self.k {
             match self.input.get(j) {
-                Some(x) => current_min = min(current_min, *x),
-                None => {
-                    return current_min;
-                }
+                Some(x) => {
+                    current_min = min(current_min, *x);
+                    min_idx = self.min_idx(min_idx, j);
+                },
+                None => break,
             };
         }
-        return current_min;
+        return (current_min, min_idx);
     }
 
     fn build_sparse(&mut self) {
-        for x in self.block_min.iter() {
-            self.sparse_table[0].push(*x);
+        for x in self.block_min_idx.iter() {
+            self.sparse_idx[0].push(*x);
         }
-        let m = self.block_min.len();
+        let m = self.block_min_idx.len();
         for loglen in 1..(log_floor(m as u32) as usize) {
             for i in 0..= m - (1 << loglen) {
-                let a = self.sparse_table[loglen-1][i];
-                let b = self.sparse_table[loglen-1][i + (1 << (loglen - 1))];
-                self.sparse_table[loglen].push(min(a,b));
+                let a = self.sparse_idx[loglen-1][i];
+                let b = self.sparse_idx[loglen-1][i + (1 << (loglen - 1))];
+                let tmp = self.min_idx(a,b);
+                self.sparse_idx[loglen].push(tmp);
             }
         }
     }
 
-    fn get(&self, mut l: usize, mut r: usize) -> u32 { 
+    fn get(&self, mut l: usize, mut r: usize) -> usize { 
         if l > r {
             let tmp = l;
             l = r;
@@ -78,21 +86,23 @@ impl RMQ {
         let r_prefix = self.get_in_block(block_r, 0, r % self.k);
         match block_r - block_l {
             0 => return self.get_in_block(block_l, l % self.k, r % self.k),
-            1 => return min(l_suffix, r_prefix),
-            _ => return min(min(l_suffix, self.get_on_blocks(block_l+1, block_r-1)), r_prefix),
+            1 => return self.min_idx(l_suffix, r_prefix),
+            _ => return self.min_idx(self.min_idx(l_suffix, self.get_on_blocks(block_l+1, block_r-1)), r_prefix),
         };
     }
 
-    fn get_on_blocks(&self, l: usize, r: usize) -> u32 {
+    fn get_on_blocks(&self, l: usize, r: usize) -> usize {
         let loglen = log_floor((r-l+1) as u32) as usize;
         let idx: usize = ((r as i64) - (1 << loglen as i64) + 1) as usize;
-        return min(self.sparse_table[loglen][l as usize], self.sparse_table[loglen][idx]);
+        let a = self.sparse_idx[loglen][l as usize];
+        let b = self.sparse_idx[loglen][idx];
+        return self.min_idx(a,b);
     }
 
-    fn get_in_block(&self, block_idx: usize, l: usize, r: usize) -> u32 {  
+    fn get_in_block(&self, block_idx: usize, l: usize, r: usize) -> usize {  
         let mask = self.block_mask[block_idx];
         let min_idx = self.block_rmq[mask as usize][l][r];
-        return self.input[min_idx + block_idx * self.k];
+        return min_idx + block_idx * self.k;
     }
 
     fn fill_block_rmq(&mut self) {
@@ -148,6 +158,12 @@ impl RMQ {
         }                                
         return mask;
     }
+    fn min_idx(&self, i: usize, j: usize) -> usize {
+        if self.input[i] < self.input[j] {
+            return i;
+        }
+        return j;
+    }
 }
 
 fn min(a: u32, b: u32) -> u32 {
@@ -178,5 +194,5 @@ fn main() {
     println!("For k={} Blocks we get the minima={:?}",rmq.k, rmq.block_min);
     println!("sparse_table = {:?}", rmq.sparse_table);
     println!("{:?}", rmq.block_rmq);
-    println!("get(0,4) {:?}", rmq.get(21,17));
+    println!("get(0,4) {:?}", rmq.get(24,17));
 }
