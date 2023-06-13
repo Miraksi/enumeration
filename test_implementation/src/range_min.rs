@@ -8,7 +8,6 @@ struct RMQ {
     k: usize,
     block_min: Vec<u32>,
     block_min_idx: Vec<usize>,
-    sparse_table: Vec<Vec<u32>>,
     sparse_idx: Vec<Vec<usize>>,
     block_rmq: Vec<Vec<Vec<usize>>>,
     block_mask: Vec<u32>,
@@ -24,8 +23,7 @@ impl RMQ {
             k: k as usize,
             block_min: Vec::new(),
             block_min_idx: Vec::new(),
-            sparse_table: vec![Vec::new();log_floor(n) as usize],
-            sparse_idx: vec![Vec::new();log_floor(n) as usize],
+            sparse_idx: vec![Vec::new();log_floor(n) as usize], // is a sparse table, which only stores the indeces
             block_rmq: Vec::new(),
             block_mask: Vec::new(),
         };
@@ -192,7 +190,6 @@ fn main() {
     let rmq = RMQ::new(vec![0,1,2,1,2,3,4,5,4,5,4,3,2,3,4,5,6,7,8,9,8,7,6,5,7,6,5,6,7,8,9,10,9,8,7,8,7,8,9,10,11,10,9,8,7,6,5,4,3,2,3,4,3,4]);
     println!("Hi");
     println!("For k={} Blocks we get the minima={:?}",rmq.k, rmq.block_min);
-    println!("sparse_table = {:?}", rmq.sparse_table);
     println!("{:?}", rmq.block_rmq);
     println!("get(0,4) {:?}", rmq.get(24,17));
 }
