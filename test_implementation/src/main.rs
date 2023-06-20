@@ -1,6 +1,8 @@
 mod beq;
+mod default_graph;
 
 use beq::Bottleneck;
+
 
 fn main() {
     let mut children: Vec<Vec<usize>> = Vec::new();
@@ -19,7 +21,7 @@ fn main() {
     children.push(Vec::new());
 
     let parent = vec![0,0,0,1,1,1,2,2,3,4,4,4];
-    let mut weights : Vec<Vec<usize>> = vec![Vec::new(); children.len()];
+    let mut weights: Vec<Vec<usize>> = vec![Vec::new(); children.len()];
     weights[0] = vec![8,1];
     weights[1] = vec![7,1,9];
     weights[2] = vec![1,4];

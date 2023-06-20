@@ -4,30 +4,85 @@ use std::collections::HashMap;
 use longest_path::compute_longest_pairs;
 
 #[derive(Debug)]
-enum CompType {
-    Independent,
-    Connected,
-    Cycle,
+pub enum CompType {
+    Ind(Independent),
+    Con(Connected),
+    Cyc(Cycle),
 }
 
 #[derive(Debug)]
-pub struct DefaultComp {
-    comp_typ: CompType,
-    edge_list: Vec<Vec<usize>>,
-    mapping: Vec<usize>,
+struct Independent {
+    edge_list: Vec<Vec<usize>>, 
+    depth: Vec<usize>,
+    mapping: Vec<usize>,    //map for external to internal
 }
-impl DefaultComp {
-    fn new(t: CompType, edge_list: Vec<Vec<usize>>, mapping: Vec<usize>) -> Self {
-        Self{
-            comp_typ: t,
+impl Independent {
+    fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>) -> Self {
+        let mut depth: Vec<usize> = vec![0; edge_list.len()];
+        calc_depth(&edge_list, &mut depth, 0, 0);
+        Self {
             edge_list: edge_list,
+            depth: depth,
+            mapping: mapping,
+        }
+    }
+}
+fn calc_depth(edge_list: &Vec<Vec<usize>>, depth: &mut Vec<usize>, curr: usize, curr_depth: usize) {
+    depth[curr] = curr_depth;
+    for next in edge_list[curr].iter() {
+        calc_depth(edge_list, depth, *next, curr_depth + 1);
+    }
+}
+
+#[derive(Debug)]
+struct Cycle {
+    nodes: Vec<usize>,
+}
+impl Cycle {
+    fn new(nodes: Vec<usize>) -> Self {
+        Self {
+            nodes: nodes,
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Connected {
+    edge_list: Vec<Vec<usize>>, 
+    depth: Vec<usize>,
+    mapping: Vec<usize>,    //map for external to internal
+}
+impl Connected {
+    fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>) -> Self {
+        let mut depth: Vec<usize> = vec![0; edge_list.len()];
+        calc_depth(&edge_list, &mut depth, 0, 0);
+        Self {
+            edge_list: edge_list,
+            depth: depth,
             mapping: mapping,
         }
     }
 }
 
+// #[derive(Debug)]
+// pub struct DefaultComp {
+//     comp_typ: CompType,
+//     edge_list: Vec<Vec<usize>>,
+//     mapping: Vec<usize>,
+// }
+// impl DefaultComp {
+//     fn new(t: CompType, edge_list: Vec<Vec<usize>>, mapping: Vec<usize>) -> Self {
+//         Self{
+//             comp_typ: t,
+//             edge_list: edge_list,
+//             mapping: mapping,
+//         }
+//     }
+// }
+
 pub struct DefaultGraph {
-    pub components: Vec<DefaultComp>,
+    pub lq: Vec<Vec<(char,u32)>>,
+    pub components: Vec<CompType>,
     pub default_edges: Vec<Vec<usize>>,
     pub rev_default_edges: Vec<Vec<usize>>,
     pub comp_idx: Vec<Option<usize>>,   //maps the node to the the component on wich it lies
@@ -35,15 +90,18 @@ pub struct DefaultGraph {
 }
 impl DefaultGraph {
     pub fn new(delta: &Vec<HashMap<char, usize>>) -> Self {
+        let (lq, default_edges) = compute_default_graph(delta);
         let mut new = Self{
+            lq: lq,
             components: Vec::new(),
-            default_edges: compute_default_graph(delta),
+            default_edges: default_edges,
             rev_default_edges: Vec::new(),
             comp_idx: vec![None; delta.len()],
             mapping: vec![None; delta.len()],
         };
         new.rev_default_edges = reverse_edges(&new.default_edges);
         new.compute_default_components();
+        new.weigh_default_nodes(); //prerequisite for PathMaxNode(s,l) 
         return new;
     }
 
@@ -51,8 +109,8 @@ impl DefaultGraph {
         let roots: Vec<usize> = find_roots(&self.default_edges);
     
         for root in roots.iter() {
-            let indep = self.calc_independent(*root);
-            self.components.push(indep);
+            let ind = self.calc_independent(*root);
+            self.components.push(CompType::Ind(ind));
         }
         let mut visited: Vec<bool> = vec![false; self.default_edges.len()];
         for p in 0..self.comp_idx.len() {
@@ -63,7 +121,7 @@ impl DefaultGraph {
         }
     }
 
-    fn calc_independent(&mut self, root: usize) -> DefaultComp {
+    fn calc_independent(&mut self, root: usize) -> Independent {
         let mut return_list: Vec<Vec<usize>> = vec![Vec::new()];
         let mut comp_mapping: Vec<usize> = Vec::new();
 
@@ -94,7 +152,7 @@ impl DefaultGraph {
             }
         }
 
-        return DefaultComp::new(CompType::Independent, return_list, comp_mapping);
+        return Independent::new(return_list, comp_mapping);
     }
 
     fn find_cycle(&mut self, mut current: usize, visited: &mut Vec<bool>) {
@@ -105,16 +163,16 @@ impl DefaultGraph {
             next = self.default_edges[current][0];
         }
         let cycle = self.calc_cycle(next);
-        for p in cycle.mapping.iter() {
+        for p in cycle.nodes.iter() {
             self.calc_connected(*p);
         }
-        for p in cycle.mapping.iter() {
+        for p in cycle.nodes.iter() {
             self.mapping[*p] = Some(self.components.len());
         }
-        self.components.push(cycle);
+        self.components.push(CompType::Cyc(cycle));
     }
 
-    fn calc_cycle(&mut self, start: usize) -> DefaultComp {
+    fn calc_cycle(&mut self, start: usize) -> Cycle {
         let mut current = start;
         let mut next = self.default_edges[current][0];
         let mut idx: usize = 0;
@@ -131,7 +189,7 @@ impl DefaultGraph {
 
             next = self.default_edges[current][0];
         }
-        return DefaultComp::new(CompType::Cycle, Vec::new(), mapping);
+        return Cycle::new(mapping);
     }
 
     fn calc_connected(&mut self, root: usize) {     //TODO clean up code
@@ -172,12 +230,42 @@ impl DefaultGraph {
                 edge_list[x] = edges;
             }
         }
-        self.components.push(DefaultComp::new(CompType::Connected, edge_list, comp_mapping));
+        let tmp = Connected::new(edge_list, comp_mapping);
+        self.components.push(CompType::Con(tmp));
+    }
+
+    fn weigh_default_nodes(&mut self) {
+        for i in 0..self.components.len() {
+            match self.components[i] {
+                CompType::Ind(_) => self.weigh_ind(i),
+                CompType::Cyc(_) => continue,
+                CompType::Con(_) => continue,
+            }
+        }
+    }
+
+    fn weigh_ind(&self, idx: usize) {
+        let mut weight: Vec<i64> = Vec::new();
+        if let CompType::Ind(comp) = &self.components[idx] {
+            for i in 0..comp.edge_list.len() {    // for the root of independent trees, there is no w_q since 
+                if self.lq[comp.mapping[i]].len() < 2 {
+                    weight[i] = 0;
+                }
+                else {
+                    let (_,l) = self.lq[comp.mapping[i]][1];
+                    weight[i] = l as i64;
+                }
+                weight[i] = weight[i] - comp.depth[i] as i64;
+            }
+        }
+        else {
+            panic!("weigh_ind recieved a non independent component");
+        }
     }
 }
 
 //TODO Testing
-fn compute_default_graph(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<usize>> {
+fn compute_default_graph(delta: &Vec<HashMap<char, usize>>) -> (Vec<Vec<(char,u32)>>, Vec<Vec<usize>>) {
     let lq = compute_longest_pairs(delta);
     let mut default_edges: Vec<Vec<usize>> = vec![Vec::new();delta.len()];
     for q in 0..lq.len() {
@@ -189,7 +277,7 @@ fn compute_default_graph(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<usize>> {
             None => continue,
         };
     }
-    return default_edges;
+    return (lq, default_edges);
 }
 
 
