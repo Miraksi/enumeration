@@ -5,26 +5,42 @@ use longest_path::compute_longest_pairs;
 
 #[derive(Debug)]
 pub enum CompType {
-    Ind(Independent),
-    Con(Connected),
+    Ind(Tree),
+    Con(Tree),
     Cyc(Cycle),
 }
 
 #[derive(Debug)]
-struct Independent {
+struct Tree {
     edge_list: Vec<Vec<usize>>, 
     depth: Vec<usize>,
+    weights: Vec<i64>,
     mapping: Vec<usize>,    //map for external to internal
 }
-impl Independent {
+impl Tree {
     fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>) -> Self {
         let mut depth: Vec<usize> = vec![0; edge_list.len()];
         calc_depth(&edge_list, &mut depth, 0, 0);
         Self {
             edge_list: edge_list,
             depth: depth,
+            weights: Vec::new(),
             mapping: mapping,
         }
+    }
+    fn weigh(&mut self, lq: &Vec<Vec<(char, u32)>>) {
+        let mut weight: Vec<i64> = Vec::new();
+        for i in 0..self.edge_list.len() {    // for the root of independent trees, there is no w_q since 
+            if lq[self.mapping[i]].len() < 2 {
+                weight[i] = 0;
+            }
+            else {
+                let (_,l) = lq[self.mapping[i]][1];
+                weight[i] = l as i64;
+            }
+            weight[i] = weight[i] - self.depth[i] as i64;
+        }
+        self.weights = weight;
     }
 }
 fn calc_depth(edge_list: &Vec<Vec<usize>>, depth: &mut Vec<usize>, curr: usize, curr_depth: usize) {
@@ -42,24 +58,6 @@ impl Cycle {
     fn new(nodes: Vec<usize>) -> Self {
         Self {
             nodes: nodes,
-        }
-    }
-}
-
-#[derive(Debug)]
-struct Connected {
-    edge_list: Vec<Vec<usize>>, 
-    depth: Vec<usize>,
-    mapping: Vec<usize>,    //map for external to internal
-}
-impl Connected {
-    fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>) -> Self {
-        let mut depth: Vec<usize> = vec![0; edge_list.len()];
-        calc_depth(&edge_list, &mut depth, 0, 0);
-        Self {
-            edge_list: edge_list,
-            depth: depth,
-            mapping: mapping,
         }
     }
 }
@@ -121,7 +119,7 @@ impl DefaultGraph {
         }
     }
 
-    fn calc_independent(&mut self, root: usize) -> Independent {
+    fn calc_independent(&mut self, root: usize) -> Tree {
         let mut return_list: Vec<Vec<usize>> = vec![Vec::new()];
         let mut comp_mapping: Vec<usize> = Vec::new();
 
@@ -152,7 +150,7 @@ impl DefaultGraph {
             }
         }
 
-        return Independent::new(return_list, comp_mapping);
+        return Tree::new(return_list, comp_mapping);
     }
 
     fn find_cycle(&mut self, mut current: usize, visited: &mut Vec<bool>) {
@@ -230,36 +228,17 @@ impl DefaultGraph {
                 edge_list[x] = edges;
             }
         }
-        let tmp = Connected::new(edge_list, comp_mapping);
+        let tmp = Tree::new(edge_list, comp_mapping);
         self.components.push(CompType::Con(tmp));
     }
 
     fn weigh_default_nodes(&mut self) {
         for i in 0..self.components.len() {
-            match self.components[i] {
-                CompType::Ind(_) => self.weigh_ind(i),
+            match &mut self.components[i] {
+                CompType::Ind(comp) => comp.weigh(&self.lq),
+                CompType::Con(comp) => comp.weigh(&self.lq),
                 CompType::Cyc(_) => continue,
-                CompType::Con(_) => continue,
-            }
-        }
-    }
-
-    fn weigh_ind(&self, idx: usize) {
-        let mut weight: Vec<i64> = Vec::new();
-        if let CompType::Ind(comp) = &self.components[idx] {
-            for i in 0..comp.edge_list.len() {    // for the root of independent trees, there is no w_q since 
-                if self.lq[comp.mapping[i]].len() < 2 {
-                    weight[i] = 0;
-                }
-                else {
-                    let (_,l) = self.lq[comp.mapping[i]][1];
-                    weight[i] = l as i64;
-                }
-                weight[i] = weight[i] - comp.depth[i] as i64;
-            }
-        }
-        else {
-            panic!("weigh_ind recieved a non independent component");
+            };
         }
     }
 }
