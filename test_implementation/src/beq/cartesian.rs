@@ -22,19 +22,15 @@ impl Node {
     }
 }
 
-pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Vec<usize>>, root: usize) -> Vec<Node>{
+//TODO refactor method to be smaller
+pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Vec<usize>>, root: usize) -> (Vec<Node>, Vec<usize>) {
     let mut con = Connectivity::new(parent, children, root);
     let mut edge_lst: Vec<(usize,(usize, usize))> = Vec::new();
     let mut c_tree: Vec<Node> = Vec::new();
     let mut side_list: Vec<Option<Side>> = vec![None; parent.len()];
+    let mut last_occ: Vec<usize> = vec![0; parent.len()];
     
-
-    for i in 0..children.len() {
-        for j in 0..children[i].len() {
-            edge_lst.push((weights[i][j],(i,children[i][j])));
-        }
-    }
-    edge_lst.rdxsort();
+    let edge_lst = sorted_edge_list(children, weights);
 
     for (weight,(u,v)) in edge_lst.iter() {
         let len = c_tree.len();
@@ -47,6 +43,8 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
                 _ => panic!("no side found"),
             };
         }
+        last_occ[*u] = max(last_occ[*u], len);
+        last_occ[*v] = max(last_occ[*v], len);
         c_tree.push(tmp);
 
         println!("deleting ({}, {})", *u, *v);
@@ -71,8 +69,27 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
             None => panic!("node has no side"),
         };
     }
-    return c_tree;
+    return (c_tree, last_occ);
 }
+
+fn sorted_edge_list(children: &Vec<Vec<usize>>, weights: &Vec<Vec<usize>>) -> Vec<(usize, (usize, usize))>{
+    let mut edge_lst = Vec::new();
+    for i in 0..children.len() {
+        for j in 0..children[i].len() {
+            edge_lst.push((weights[i][j],(i,children[i][j])));
+        }
+    }
+    edge_lst.rdxsort();
+    return edge_lst;
+}
+
+fn max(a: usize, b: usize) -> usize {
+    if a < b {
+        return b;
+    }
+    return a; 
+}
+
 
 // fn main() {
 //     let mut children: Vec<Vec<usize>> = Vec::new();

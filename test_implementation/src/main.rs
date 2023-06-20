@@ -1,6 +1,6 @@
 mod beq;
 
-use beq::lca::LCA;
+use beq::Bottleneck;
 
 fn main() {
     let mut children: Vec<Vec<usize>> = Vec::new();
@@ -19,6 +19,14 @@ fn main() {
     children.push(Vec::new());
 
     let parent = vec![0,0,0,1,1,1,2,2,3,4,4,4];
-    let lca = LCA::new(&parent, &children, 0);
-    println!("LCA(9,5): {}", lca.get(9,5));
+    let mut weights : Vec<Vec<usize>> = vec![Vec::new(); children.len()];
+    weights[0] = vec![8,1];
+    weights[1] = vec![7,1,9];
+    weights[2] = vec![1,4];
+    weights[3] = vec![5];
+    weights[4] = vec![1,6,3];
+
+    let b = Bottleneck::new(&parent, &children, &weights, 0);
+    println!("{:?}", b.c_tree);
+    println!("{:?}", b.last_occ);
 }
