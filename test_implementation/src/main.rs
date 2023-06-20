@@ -29,4 +29,5 @@ fn main() {
     let b = Bottleneck::new(&parent, &children, &weights, 0);
     println!("{:?}", b.c_tree);
     println!("{:?}", b.last_occ);
+    println!("\nbeq(3,5) = {}", b.get(3,5));
 }

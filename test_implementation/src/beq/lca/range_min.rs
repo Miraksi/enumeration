@@ -31,7 +31,7 @@ impl RMQ {
         new.build_sparse();
         new.fill_block_rmq();
         new.precompute_masks();
-        println!("RMQ-DATA-STRUCTURE---------\ninput: {:?}\nsparse-idx: {:?}\n-------------------", new.input, new.sparse_idx);
+        // println!("RMQ-DATA-STRUCTURE---------\ninput: {:?}\nsparse-idx: {:?}\n-------------------", new.input, new.sparse_idx);
         return new;
     }
     fn calc_block_min(&mut self) {
@@ -73,7 +73,7 @@ impl RMQ {
     }
 
     pub fn get(&self, mut l: usize, mut r: usize) -> usize { 
-        println!("RMQ({},{})", l, r);
+        // println!("RMQ({},{})", l, r);
         if l > r {
             let tmp = l;
             l = r;

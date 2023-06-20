@@ -9,15 +9,17 @@ pub struct Node {
     parent: usize,
     left: Option<usize>,
     right: Option<usize>,
-    weight: usize,
+    pub weight: usize,  //TODO Check if weight is necessary
+    edge: (usize, usize),
 }
 impl Node {
-    pub fn new(parent: usize, left: Option<usize>, right: Option<usize>, weight: usize) -> Self {
+    pub fn new(parent: usize, left: Option<usize>, right: Option<usize>, weight: usize, edge: (usize, usize)) -> Self {
         Node{
             parent: parent,
             left: left,
             right: right,
             weight: weight,
+            edge: edge,
         }
     }
 }
@@ -34,7 +36,7 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
 
     for (weight,(u,v)) in edge_lst.iter() {
         let len = c_tree.len();
-        let mut tmp = Node::new(len, None, None, *weight);
+        let mut tmp = Node::new(len, None, None, *weight, (*u, *v));
         let comp_idx = con.get_comp_idx(*u);
         if let Some(x) = con.comp_list[comp_idx].parent {
             tmp.parent = x;
@@ -47,7 +49,7 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
         last_occ[*v] = max(last_occ[*v], len);
         c_tree.push(tmp);
 
-        println!("deleting ({}, {})", *u, *v);
+        // println!("deleting ({}, {})", *u, *v);
         con.delete(*u, *v);
 
         let u_idx = con.get_comp_idx(*u);
@@ -88,6 +90,22 @@ fn max(a: usize, b: usize) -> usize {
         return b;
     }
     return a; 
+}
+
+pub fn cartesian_to_tree(c_tree: &Vec<Node>) -> (Vec<usize>, Vec<Vec<usize>>) {
+    let mut parent: Vec<usize> = vec![0; c_tree.len()];
+    let mut children: Vec<Vec<usize>> = vec![Vec::new(); c_tree.len()];
+
+    for i in 0..c_tree.len() {
+        parent[i] = c_tree[i].parent;
+        if let Some(x) = c_tree[i].left {
+            children[i].push(x);
+        }
+        if let Some(x) = c_tree[i].right {
+            children[i].push(x);
+        }
+    }
+    return (parent, children);
 }
 
 
