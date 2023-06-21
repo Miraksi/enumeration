@@ -108,6 +108,32 @@ pub fn cartesian_to_tree(c_tree: &Vec<Node>) -> (Vec<usize>, Vec<Vec<usize>>) {
     return (parent, children);
 }
 
+// taken from https://cp-algorithms.com/graph/rmq_linear.html#construction-of-a-cartesian-tree
+pub fn cartesian_on_list(list: &Vec<i64>) -> (Vec<usize>, Vec<Vec<usize>>) {
+    let mut stack: Vec<usize> = Vec::new();
+    let mut parent: Vec<usize> = vec![0; list.len()];
+    for i in 0..list.len() {
+        let mut last: Option<usize> = None;
+        let mut len = stack.len();
+        while !stack.is_empty() && list[stack[len - 1]] >= list[i] {
+            last = Some(stack.pop().unwrap());
+            len -= 1;
+        }
+        if !stack.is_empty() {
+            parent[i] = stack[len - 1];
+        }
+        if let Some(idx) = last {
+            parent[idx] = i;
+        }
+        stack.push(i);
+    }
+    let mut children: Vec<Vec<usize>> = vec![Vec::new(); list.len()];
+    for i in 0..parent.len() {
+        children[parent[i]].push(i);
+    }
+    return (parent, children);
+}
+
 
 // fn main() {
 //     let mut children: Vec<Vec<usize>> = Vec::new();
