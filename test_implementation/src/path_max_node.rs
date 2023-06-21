@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use crate::default_graph::{DefaultGraph, CompType};
+use crate::level_ancestor::LevelAncestor;
 
 pub struct PathMaxNode {
     d_graph: DefaultGraph,

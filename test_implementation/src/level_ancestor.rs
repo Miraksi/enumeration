@@ -9,7 +9,7 @@ fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
 
 //maybe use enum to distinguish macro and micro nodes
 #[derive(Debug)]
-pub struct Node {
+struct Node {
     parent: usize,
     children: Vec<usize>,
     depth: usize,
@@ -35,26 +35,25 @@ impl Node {
 }
 // TODO what kind of queries do I get?
 // we maybe need lifetimes here
-// pub only for debugging purposes
-pub struct Ladders { //TODO CHANGE NAME
-    pub n: usize,
-    pub k: usize,                        // k = (log n) / 4
-    pub root: usize,
-    pub nodes: Vec<Node>,                // It is important, that the parent of the root, is the root itself
-    pub ladders: Vec<Vec<usize>>,        // ladders are in reverse order
-    pub leaf_depth: Vec<(usize, usize)>, // (depth of leaf, index of leaf)
-    pub jump_nodes: Vec<usize>,         // stores all jump_nodes (leaves of the macrotree)
-    pub jump_points: HashMap<usize, Vec<usize>>,    // stores all the jumppoints for a jump node
+pub struct LevelAncestor { //TODO CHANGE NAME
+    n: usize,
+    k: usize,                        // k = (log n) / 4
+    root: usize,
+    nodes: Vec<Node>,                // It is important, that the parent of the root, is the root itself
+    ladders: Vec<Vec<usize>>,        // ladders are in reverse order
+    leaf_depth: Vec<(usize, usize)>, // (depth of leaf, index of leaf)
+    jump_nodes: Vec<usize>,         // stores all jump_nodes (leaves of the macrotree)
+    jump_points: HashMap<usize, Vec<usize>>,    // stores all the jumppoints for a jump node
                                                 // we are allowed to stor this in a HashMap, 
                                                 // since inserting will still work in O(n) 
                                                 // (n beeing the number of nodes)
-    pub micro_table: Vec<Vec<Vec<usize>>>,
-    pub micro_hashes: Vec<u32>,
-    pub micro_mapping: Vec<Vec<usize>>,     // maps the result of LA on hashes to the actual nodes
+    micro_table: Vec<Vec<Vec<usize>>>,
+    micro_hashes: Vec<u32>,
+    micro_mapping: Vec<Vec<usize>>,     // maps the result of LA on hashes to the actual nodes
                                             // TODO testing of mapping
 }
 
-impl Ladders {
+impl LevelAncestor {
     pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
         let n = parent.len();
         let k = (log_floor(n as u32)/4) as usize;
@@ -195,7 +194,7 @@ impl Ladders {
     // calculates the hash of a graph, 
     // maps the indecies of the hash to the indecies of th original graph,
     // maps nodes to their corresponding micro-tree
-    pub fn graph_to_hash(&mut self, root: usize, micro_tree: usize, nearest_jump: usize) -> u32 {
+    fn graph_to_hash(&mut self, root: usize, micro_tree: usize, nearest_jump: usize) -> u32 {
         let mut hash: u32 = (1 << self.k*2) -1;
         let mut offset: u32 = 0; 
         let mut current = root;
@@ -251,7 +250,7 @@ impl Ladders {
         }
     }
 
-    pub fn macro_level_ancestor(&self, p: usize, l: usize) -> usize {
+    fn macro_level_ancestor(&self, p: usize, l: usize) -> usize {
         if l == 0 {
             return p;
         }
@@ -270,7 +269,7 @@ impl Ladders {
         };
     }
 
-    pub fn micro_level_ancestor(&self, p: usize, l: usize) -> usize {
+    fn micro_level_ancestor(&self, p: usize, l: usize) -> usize {
         let tree = self.nodes[p].micro_tree;
         let idx = self.nodes[p].micro_idx;
         return self.micro_mapping[tree][self.micro_table[tree][idx][l]];
@@ -302,7 +301,7 @@ impl Ladders {
     }
 }
 
-pub fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Vec<Node> {   
+fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Vec<Node> {   
     let mut list: Vec<Node> = Vec::new();
     for i in 0..parent.len() {
         let node = Node::new(parent[i], children[i].clone());
@@ -319,7 +318,7 @@ fn max(a: usize, b: usize) -> usize { // TODO outsource
     }
 }
 
-pub fn hash_to_graph(k: usize, mut hash: u32) -> Vec<Node> {
+fn hash_to_graph(k: usize, mut hash: u32) -> Vec<Node> {
     let mut current: usize = 0;
     let mut graph: Vec<Node> = vec![Node::new(0, Vec::new())];
     for _i in 0..2*k {
@@ -340,7 +339,7 @@ pub fn hash_to_graph(k: usize, mut hash: u32) -> Vec<Node> {
     return graph;
 }
 
-pub fn brute_level_ancestor(graph: Vec<Node>) -> Vec<Vec<usize>> {
+fn brute_level_ancestor(graph: Vec<Node>) -> Vec<Vec<usize>> {
     let mut table: Vec<Vec<usize>> = Vec::new();
     for node in 0..graph.len() {
         let mut tmp: Vec<usize> = vec![node];
