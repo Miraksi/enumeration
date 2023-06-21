@@ -1,5 +1,6 @@
 mod beq;
 mod default_graph;
+mod path_max_node;
 
 use beq::Bottleneck;
 

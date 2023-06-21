@@ -11,11 +11,11 @@ pub enum CompType {
 }
 
 #[derive(Debug)]
-struct Tree {
+pub struct Tree {
     edge_list: Vec<Vec<usize>>, 
     depth: Vec<usize>,
     weights: Vec<i64>,
-    mapping: Vec<usize>,    //map for external to internal
+    pub mapping: Vec<usize>,    //map for internal to external;
 }
 impl Tree {
     fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>) -> Self {
@@ -51,7 +51,7 @@ fn calc_depth(edge_list: &Vec<Vec<usize>>, depth: &mut Vec<usize>, curr: usize, 
 }
 
 #[derive(Debug)]
-struct Cycle {
+pub struct Cycle {
     nodes: Vec<usize>,
 }
 impl Cycle {
@@ -239,6 +239,14 @@ impl DefaultGraph {
                 CompType::Con(comp) => comp.weigh(&self.lq),
                 CompType::Cyc(_) => continue,
             };
+        }
+    }
+
+    pub fn get_depth(&self, i: usize) -> usize {
+        match &self.components[self.comp_idx[i].unwrap()] {
+            CompType::Ind(x) => x.depth[self.mapping[i].unwrap()],
+            CompType::Con(x) => x.depth[self.mapping[i].unwrap()],
+            CompType::Cyc(_) => panic!("no depth defined for cycles"),
         }
     }
 }
