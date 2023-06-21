@@ -35,6 +35,7 @@ impl Node {
 }
 // TODO what kind of queries do I get?
 // we maybe need lifetimes here
+#[derive(Debug)]
 pub struct LevelAncestor { //TODO CHANGE NAME
     n: usize,
     k: usize,                        // k = (log n) / 4
@@ -54,10 +55,10 @@ pub struct LevelAncestor { //TODO CHANGE NAME
 }
 
 impl LevelAncestor {
-    pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Self {
+    pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
         let n = parent.len();
         let k = (log_floor(n as u32)/4) as usize;
-        let nodes = compute_node_list(&parent, children, root);
+        let nodes = compute_node_list(parent, children, root);
         let mut new = Self {
             n: n,
             k: k,
@@ -71,7 +72,7 @@ impl LevelAncestor {
             micro_hashes: Vec::new(),
             micro_mapping: Vec::new(),
         };
-        new.compute_ladders(parent);
+        new.compute_ladders(parent.clone());
         new.compute_jump_points();
         new.compute_micro_table();
         new.compute_micro_hashes();
@@ -301,7 +302,7 @@ impl LevelAncestor {
     }
 }
 
-fn compute_node_list(parent: &Vec<usize>, children: Vec<Vec<usize>>, root: usize) -> Vec<Node> {   
+fn compute_node_list(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Vec<Node> {   
     let mut list: Vec<Node> = Vec::new();
     for i in 0..parent.len() {
         let node = Node::new(parent[i], children[i].clone());

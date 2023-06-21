@@ -1,47 +1,72 @@
 mod longest_path;
 
 use std::collections::HashMap;
+use crate::{level_ancestor::LevelAncestor, beq::Bottleneck};
 use longest_path::compute_longest_pairs;
 
-#[derive(Debug)]
 pub enum CompType {
     Ind(Tree),
     Con(Tree),
     Cyc(Cycle),
 }
 
-#[derive(Debug)]
 pub struct Tree {
     edge_list: Vec<Vec<usize>>, 
     depth: Vec<usize>,
-    weights: Vec<i64>,
+    la: LevelAncestor,
+    beq: Bottleneck,
     pub mapping: Vec<usize>,    //map for internal to external;
 }
 impl Tree {
-    fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>) -> Self {
+    fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Self {
         let mut depth: Vec<usize> = vec![0; edge_list.len()];
+        let parent = compute_parents(&edge_list);
         calc_depth(&edge_list, &mut depth, 0, 0);
+        let weights = weigh(&depth, &mapping, lq);  //is needed for PathMaxNode
+        let (beq_parent, beq_children, beq_weights) = to_beq_tree(&parent, &edge_list, &weights);
         Self {
-            edge_list: edge_list,
+            edge_list: edge_list.clone(),
             depth: depth,
-            weights: Vec::new(),
+            la: LevelAncestor::new(&parent, &edge_list, 0),
+            beq: Bottleneck::new(&beq_parent, &beq_children, &beq_weights, edge_list.len()),
             mapping: mapping,
         }
-    }
-    fn weigh(&mut self, lq: &Vec<Vec<(char, u32)>>) {
-        let mut weight: Vec<i64> = Vec::new();
-        for i in 0..self.edge_list.len() {    // for the root of independent trees, there is no w_q since 
-            if lq[self.mapping[i]].len() < 2 {
-                weight[i] = 0;
-            }
-            else {
-                let (_,l) = lq[self.mapping[i]][1];
-                weight[i] = l as i64;
-            }
-            weight[i] = weight[i] - self.depth[i] as i64;
+    }  
+}
+fn weigh(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Vec<i64> {
+    let mut weight: Vec<i64> = Vec::new();
+    for i in 0..mapping.len() {    // for the root of independent trees, there is no w_q since 
+        if lq[mapping[i]].len() < 2 {
+            weight[i] = 0;
         }
-        self.weights = weight;
+        else {
+            let l = lq[mapping[i]][1].1;
+            weight[i] = l as i64;
+        }
+        weight[i] = weight[i] - depth[i] as i64;
     }
+    return weight;
+}
+
+fn to_beq_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<i64>) -> (Vec<usize>, Vec<Vec<usize>>, Vec<Vec<i64>>) {
+    let mut beq_parent: Vec<usize> = vec![0; parent.len()];
+    let mut beq_children: Vec<Vec<usize>> = vec![Vec::new(); children.len()];
+    let mut beq_weights: Vec<Vec<i64>> = vec![Vec::new(); children.len()*3];
+
+    for i in 0..parent.len() {
+        let upper = beq_parent.len();
+        let lower = beq_parent.len() + 1;
+        beq_parent[i] = upper;
+        beq_children[i] = vec![lower];
+        beq_parent.push(parent[i]);
+        beq_children.push(vec![i]);
+        beq_parent.push(i);
+        beq_children.push(children[i].clone());
+        beq_weights[upper] = vec![-weights[i]];
+        beq_weights[i] = vec![-weights[i]];
+        beq_weights[lower] = vec![i64::MAX; beq_children[lower].len()];
+    }
+    return (beq_parent, beq_children, beq_weights);
 }
 fn calc_depth(edge_list: &Vec<Vec<usize>>, depth: &mut Vec<usize>, curr: usize, curr_depth: usize) {
     depth[curr] = curr_depth;
@@ -50,7 +75,6 @@ fn calc_depth(edge_list: &Vec<Vec<usize>>, depth: &mut Vec<usize>, curr: usize, 
     }
 }
 
-#[derive(Debug)]
 pub struct Cycle {
     nodes: Vec<usize>,
 }
@@ -99,7 +123,6 @@ impl DefaultGraph {
         };
         new.rev_default_edges = reverse_edges(&new.default_edges);
         new.compute_default_components();
-        new.weigh_default_nodes(); //prerequisite for PathMaxNode(s,l) 
         return new;
     }
 
@@ -150,7 +173,7 @@ impl DefaultGraph {
             }
         }
 
-        return Tree::new(return_list, comp_mapping);
+        return Tree::new(return_list, comp_mapping, &self.lq);
     }
 
     fn find_cycle(&mut self, mut current: usize, visited: &mut Vec<bool>) {
@@ -228,18 +251,8 @@ impl DefaultGraph {
                 edge_list[x] = edges;
             }
         }
-        let tmp = Tree::new(edge_list, comp_mapping);
+        let tmp = Tree::new(edge_list, comp_mapping, &self.lq);
         self.components.push(CompType::Con(tmp));
-    }
-
-    fn weigh_default_nodes(&mut self) {
-        for i in 0..self.components.len() {
-            match &mut self.components[i] {
-                CompType::Ind(comp) => comp.weigh(&self.lq),
-                CompType::Con(comp) => comp.weigh(&self.lq),
-                CompType::Cyc(_) => continue,
-            };
-        }
     }
 
     pub fn get_depth(&self, i: usize) -> usize {
@@ -288,6 +301,16 @@ fn reverse_edges(edges: &Vec<Vec<usize>>) -> Vec<Vec<usize>>{   // TODO outsourc
         }
     }
     return rev_edges;
+}
+
+fn compute_parents(edge_list: &Vec<Vec<usize>>) -> Vec<usize> {
+    let mut parent: Vec<usize> = vec![0; edge_list.len()];
+    for i in 0..edge_list.len() {
+        for child in edge_list[i].iter() {
+            parent[*child] = i;
+        }
+    }
+    return parent;
 }
 
 fn main() {

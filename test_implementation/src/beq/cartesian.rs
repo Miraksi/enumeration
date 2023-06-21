@@ -9,11 +9,11 @@ pub struct Node {
     parent: usize,
     left: Option<usize>,
     right: Option<usize>,
-    pub weight: usize,  //TODO Check if weight is necessary
+    pub weight: i64,  //TODO Check if weight is necessary
     edge: (usize, usize),
 }
 impl Node {
-    pub fn new(parent: usize, left: Option<usize>, right: Option<usize>, weight: usize, edge: (usize, usize)) -> Self {
+    pub fn new(parent: usize, left: Option<usize>, right: Option<usize>, weight: i64, edge: (usize, usize)) -> Self {
         Node{
             parent: parent,
             left: left,
@@ -25,7 +25,7 @@ impl Node {
 }
 
 //TODO refactor method to be smaller
-pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Vec<usize>>, root: usize) -> (Vec<Node>, Vec<usize>) {
+pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Vec<i64>>, root: usize) -> (Vec<Node>, Vec<usize>) {
     let mut con = Connectivity::new(parent, children, root);
     let mut edge_lst: Vec<(usize,(usize, usize))> = Vec::new();
     let mut c_tree: Vec<Node> = Vec::new();
@@ -74,7 +74,7 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
     return (c_tree, last_occ);
 }
 
-fn sorted_edge_list(children: &Vec<Vec<usize>>, weights: &Vec<Vec<usize>>) -> Vec<(usize, (usize, usize))>{
+fn sorted_edge_list(children: &Vec<Vec<usize>>, weights: &Vec<Vec<i64>>) -> Vec<(i64, (usize, usize))>{
     let mut edge_lst = Vec::new();
     for i in 0..children.len() {
         for j in 0..children[i].len() {
