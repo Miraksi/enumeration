@@ -6,14 +6,14 @@ use lca::LCA;
 
 
 pub struct Bottleneck {
-    pub c_tree: Vec<cartesian::Node>,
+    pub c_tree: Vec<Node>,
     pub last_occ: Vec<usize>,
     pub lca: LCA,
 }
 
 impl Bottleneck {
-    pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Vec<i64>>, root: usize) -> Self {
-        let (c_tree, last_occ) = cartesian_on_tree(parent, children, weights, root);
+    pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, weights: Vec<Vec<i64>>, root: usize) -> Self {
+        let (c_tree, last_occ) = cartesian_on_tree(&parent, &children, &weights, root);
         let (c_parent, c_children) = cartesian_to_tree(&c_tree);    // this returns parent and children of the cartesian tree while keeping the indices
         Self{
             c_tree: c_tree,
@@ -22,9 +22,9 @@ impl Bottleneck {
         }
     }
 
-    pub fn get(&self, a: usize, b: usize) -> i64 {
+    pub fn get(&self, a: usize, b: usize) -> &Node {
         let ancestor = self.lca.get(self.last_occ[a], self.last_occ[b]);
-        return self.c_tree[ancestor].weight;
+        return &self.c_tree[ancestor];
     }
 }
 

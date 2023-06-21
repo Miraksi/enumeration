@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::default_graph::{DefaultGraph, CompType};
 use crate::level_ancestor::LevelAncestor;
+use crate::beq::cartesian::Node;
 
 pub struct PathMaxNode {
     d_graph: DefaultGraph,
@@ -30,10 +31,29 @@ impl PathMaxNode {
     }
 
     fn get_on_tree(&self, s: usize, l: usize) -> usize {
-        todo!();
+        let internal_idx = self.d_graph.mapping[s].unwrap();
+        match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
+            CompType::Ind(tree) => {
+                let ancestor = tree.la.level_ancestor(internal_idx, l);
+                let node = tree.beq.get(internal_idx, ancestor);
+                return min(node.edge);
+            },
+            CompType::Con(tree) => {
+                let ancestor = tree.la.level_ancestor(internal_idx, l);
+                let node = tree.beq.get(internal_idx, ancestor);
+                return min(node.edge);
+            },
+            CompType::Cyc(_) => panic!("get on trees called on cycle!"),
+        }
     }
 
     fn get_on_cycle(&self, s: usize, l: usize) -> usize {
         todo!();
     }
+}
+fn min(tuple: (usize, usize)) -> usize {
+    if tuple.0 < tuple.1 {
+        return tuple.0;
+    }
+    return tuple.1;
 }

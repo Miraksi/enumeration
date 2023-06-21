@@ -10,7 +10,7 @@ pub struct Node {
     left: Option<usize>,
     right: Option<usize>,
     pub weight: i64,  //TODO Check if weight is necessary
-    edge: (usize, usize),
+    pub edge: (usize, usize),
 }
 impl Node {
     pub fn new(parent: usize, left: Option<usize>, right: Option<usize>, weight: i64, edge: (usize, usize)) -> Self {

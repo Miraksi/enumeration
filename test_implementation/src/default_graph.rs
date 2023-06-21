@@ -13,8 +13,8 @@ pub enum CompType {
 pub struct Tree {
     edge_list: Vec<Vec<usize>>, 
     depth: Vec<usize>,
-    la: LevelAncestor,
-    beq: Bottleneck,
+    pub la: LevelAncestor,
+    pub beq: Bottleneck,
     pub mapping: Vec<usize>,    //map for internal to external;
 }
 impl Tree {
@@ -28,7 +28,7 @@ impl Tree {
             edge_list: edge_list.clone(),
             depth: depth,
             la: LevelAncestor::new(&parent, &edge_list, 0),
-            beq: Bottleneck::new(&beq_parent, &beq_children, &beq_weights, edge_list.len()),
+            beq: Bottleneck::new(beq_parent, beq_children, beq_weights, edge_list.len()),
             mapping: mapping,
         }
     }  
