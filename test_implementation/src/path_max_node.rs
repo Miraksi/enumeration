@@ -23,7 +23,12 @@ impl PathMaxNode {
                     return self.get_on_tree(s, l);
                 }
                 else {
-                    return self.get_on_cycle(tree.mapping[0], l - depth);
+                    let on_tree = self.get_on_tree(s, depth);
+                    let on_cycle = self.get_on_cycle(tree.mapping[0], l - depth);
+                    if self.d_graph.get_weight(on_tree) < self.d_graph.get_weight(on_cycle) {
+                        return on_cycle;
+                    }
+                    return on_tree;
                 }
             },
             CompType::Cyc(cycle) => return self.get_on_cycle(s, l),
@@ -36,12 +41,12 @@ impl PathMaxNode {
             CompType::Ind(tree) => {
                 let ancestor = tree.la.level_ancestor(internal_idx, l);
                 let node = tree.beq.get(internal_idx, ancestor);
-                return min(node.edge);
+                return tree.mapping[min(node.edge)];
             },
             CompType::Con(tree) => {
                 let ancestor = tree.la.level_ancestor(internal_idx, l);
                 let node = tree.beq.get(internal_idx, ancestor);
-                return min(node.edge);
+                return tree.mapping[min(node.edge)];
             },
             CompType::Cyc(_) => panic!("get on trees called on cycle!"),
         }

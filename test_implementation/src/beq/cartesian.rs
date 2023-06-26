@@ -27,7 +27,6 @@ impl Node {
 //TODO refactor method to be smaller
 pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Vec<i64>>, root: usize) -> (Vec<Node>, Vec<usize>) {
     let mut con = Connectivity::new(parent, children, root);
-    let mut edge_lst: Vec<(usize,(usize, usize))> = Vec::new();
     let mut c_tree: Vec<Node> = Vec::new();
     let mut side_list: Vec<Option<Side>> = vec![None; parent.len()];
     let mut last_occ: Vec<usize> = vec![0; parent.len()];
@@ -47,7 +46,7 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
         last_occ[*u] = max(last_occ[*u], len);
         last_occ[*v] = max(last_occ[*v], len);
         c_tree.push(tmp);
-        
+
         con.delete(*u, *v);
 
         let u_idx = con.get_comp_idx(*u);
