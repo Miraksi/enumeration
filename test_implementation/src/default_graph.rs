@@ -77,8 +77,8 @@ fn calc_depth(edge_list: &Vec<Vec<usize>>, depth: &mut Vec<usize>, curr: usize, 
 }
 
 pub struct Cycle {
-    nodes: Vec<usize>,
-    lca: LCA,   // rmq over length 2m
+    pub nodes: Vec<usize>,
+    pub lca: LCA,   // rmq over length 2m
 }
 impl Cycle {
     fn new(nodes: Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Self {
@@ -91,6 +91,7 @@ impl Cycle {
     }
 }
 
+// TODO I DONT TRUST THIS WEIGHING YET
 // weighs cycle like in Paper, but negates weights, to get range max and not range min
 fn weigh_cycle(nodes: &Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Vec<i64> {
     let len = nodes.len();

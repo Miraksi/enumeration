@@ -47,8 +47,22 @@ impl PathMaxNode {
         }
     }
 
+    // TODO check, if the indicies for lca are set right
     fn get_on_cycle(&self, s: usize, l: usize) -> usize {
-        todo!();
+        let i = self.d_graph.mapping[s].unwrap();
+        if let CompType::Cyc(cycle) = &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
+            let len = cycle.nodes.len();
+            if l > 2*len {
+                let max_idx = cycle.lca.get(0, len - 1);
+                return cycle.nodes[max_idx];
+            }
+            let j = (i + l) % len;
+            let max_idx = cycle.lca.get(i, len + j - 1);
+            return cycle.nodes[max_idx];
+        }
+        else {
+            panic!("get on cycle called on tree!");
+        }
     }
 }
 fn min(tuple: (usize, usize)) -> usize {
