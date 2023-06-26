@@ -11,10 +11,13 @@ pub struct LCA {
 
 impl LCA {
     pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
+        println!("constructing LCA\n...");
         let mut tour: Vec<u32> = Vec::new();
         let mut map: Vec<usize> = Vec::new();
         let mut last_occ: Vec<usize> = vec![0; parent.len()];
+        println!("euler tour of {:?}", children);
         euler_dfs(&mut tour, &mut map, &mut last_occ, &parent, &children, root, 0);
+        println!("euler tour done");
 
         Self {
             euler_tour: tour.clone(),

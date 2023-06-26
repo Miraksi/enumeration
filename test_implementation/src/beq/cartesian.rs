@@ -135,7 +135,9 @@ pub fn cartesian_on_list(list: &Vec<i64>) -> (usize, Vec<usize>, Vec<Vec<usize>>
             root = i;
             parent[i] = i;
         }
-        children[parent[i]].push(i);
+        if i != parent[i] {
+            children[parent[i]].push(i);
+        }
     }
     return (root, parent, children);
 }

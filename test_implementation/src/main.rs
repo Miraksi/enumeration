@@ -3,10 +3,22 @@ mod default_graph;
 mod path_max_node;
 mod level_ancestor;
 
-use beq::cartesian::cartesian_on_list;
+use std::collections::HashMap;
+use path_max_node::PathMaxNode;
 
 
 fn main() {
-    let list: Vec<i64> = vec![6,9,2,4,7,8,5,8,3,7];
-    println!("{:?}", cartesian_on_list(&list));
+    let mut delta: Vec<HashMap<char, usize>> = Vec::new();
+
+    delta.push(HashMap::from([('a', 1), ('b', 4)]));
+    delta.push(HashMap::from([('a', 2)]));
+    delta.push(HashMap::from([('b', 1), ('1', 3)]));
+    delta.push(HashMap::from([('a', 3)]));
+    delta.push(HashMap::from([('b', 5)]));
+    delta.push(HashMap::from([('b', 6)]));
+    delta.push(HashMap::from([('b', 3)]));
+
+    println!("HashMap initialized");
+    let path_max_node = PathMaxNode::new(&delta);
+    path_max_node.show();
 }

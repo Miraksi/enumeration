@@ -4,11 +4,12 @@ use crate::level_ancestor::LevelAncestor;
 use crate::beq::cartesian::Node;
 
 pub struct PathMaxNode {
-    d_graph: DefaultGraph,
+    pub d_graph: DefaultGraph,
 }
 
 impl PathMaxNode {
     pub fn new(delta: &Vec<HashMap<char, usize>>) -> Self {
+        println!("initializing PathMaxNode\n...");
         Self {
             d_graph: DefaultGraph::new(delta),
         }
@@ -62,6 +63,16 @@ impl PathMaxNode {
         }
         else {
             panic!("get on cycle called on tree!");
+        }
+    }
+
+    pub fn show(&self) {
+        for comp in self.d_graph.components.iter() {
+            match comp {
+                CompType::Ind(tree) => println!("Ind{:?}", tree.mapping),
+                CompType::Con(tree) => println!("Con{:?}", tree.mapping),
+                CompType::Cyc(cycle) => println!("Cyc{:?}", cycle.nodes),
+            }
         }
     }
 }
