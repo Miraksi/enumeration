@@ -3,6 +3,7 @@ mod longest_path;
 use std::collections::HashMap;
 use crate::{level_ancestor::LevelAncestor, beq::Bottleneck};
 use longest_path::compute_longest_pairs;
+use crate::beq::{lca::LCA, cartesian::cartesian_on_list};
 
 pub enum CompType {
     Ind(Tree),
@@ -22,7 +23,7 @@ impl Tree {
         let mut depth: Vec<usize> = vec![0; edge_list.len()];
         let parent = compute_parents(&edge_list);
         calc_depth(&edge_list, &mut depth, 0, 0);
-        let weights = weigh(&depth, &mapping, lq);  //is needed for PathMaxNode
+        let weights = weigh_tree(&depth, &mapping, lq);  //is needed for PathMaxNode
         let (beq_parent, beq_children, beq_weights) = to_beq_tree(&parent, &edge_list, &weights);
         Self {
             edge_list: edge_list.clone(),
@@ -33,7 +34,7 @@ impl Tree {
         }
     }  
 }
-fn weigh(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Vec<i64> {
+fn weigh_tree(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Vec<i64> {
     let mut weight: Vec<i64> = Vec::new();
     for i in 0..mapping.len() {    // for the root of independent trees, there is no w_q since 
         if lq[mapping[i]].len() < 2 {
@@ -77,13 +78,32 @@ fn calc_depth(edge_list: &Vec<Vec<usize>>, depth: &mut Vec<usize>, curr: usize, 
 
 pub struct Cycle {
     nodes: Vec<usize>,
+    lca: LCA,   // rmq over length 2m
 }
 impl Cycle {
-    fn new(nodes: Vec<usize>) -> Self {
+    fn new(nodes: Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Self {
+        let weights = weigh_cycle(&nodes, lq);
+        let (c_root, c_parent, c_children) = cartesian_on_list(&weights);
         Self {
             nodes: nodes,
+            lca: LCA::new(&c_parent, &c_children, c_root),
         }
     }
+}
+
+// weighs cycle like in Paper, but negates weights, to get range max and not range min
+fn weigh_cycle(nodes: &Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Vec<i64> {
+    let len = nodes.len();
+    let mut weights: Vec<i64> = Vec::new();
+    for i in 0..2*len {
+        if let Some((_,x)) = lq[nodes[i % len]].get(1) {
+            weights.push(i as i64 - *x as i64);
+        }
+        else {
+            weights.push(i as i64);
+        }
+    }
+    return weights;
 }
 
 // #[derive(Debug)]
@@ -210,7 +230,7 @@ impl DefaultGraph {
 
             next = self.default_edges[current][0];
         }
-        return Cycle::new(mapping);
+        return Cycle::new(mapping, &self.lq);
     }
 
     fn calc_connected(&mut self, root: usize) {     //TODO clean up code
