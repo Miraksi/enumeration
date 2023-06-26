@@ -51,7 +51,3 @@ fn euler_dfs(
         map.push(root);
     }
 }
-
-fn main() {
-    println!("Hello World!");
-}

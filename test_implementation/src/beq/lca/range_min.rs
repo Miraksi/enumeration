@@ -185,12 +185,3 @@ fn bitmask_to_array(k: usize, mut mask: u32) -> Vec<i32> {
     list.reverse();
     return list;
 }
-
-
-
-fn main() { 
-    let rmq = RMQ::new(vec![0, 1, 2, 3, 2, 1, 2, 3, 2, 3, 2, 3, 2, 1, 2, 1, 0, 1, 2, 1, 2, 1, 0]);
-    println!("For k={} Blocks we get the minima={:?}",rmq.k, rmq.block_min);
-    println!("{:?}", rmq.block_rmq);
-    println!("get(0,4) {:?}", rmq.get(22,3));
-}

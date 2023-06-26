@@ -333,7 +333,3 @@ fn compute_parents(edge_list: &Vec<Vec<usize>>) -> Vec<usize> {
     }
     return parent;
 }
-
-fn main() {
-    println!("Hello World");
-}

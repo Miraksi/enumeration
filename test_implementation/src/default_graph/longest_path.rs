@@ -156,17 +156,3 @@ fn max(a: u32, b: u32) -> u32 {
         false => a,
     }
 }
-
-
-fn main() {
-    let mut tran: Vec<Vec<usize>> = Vec::new();
-    tran.push(vec![4]);
-    tran.push(vec![5]);
-    tran.push(Vec::new());
-    tran.push(vec![0]);
-    tran.push(vec![5,3]);
-    tran.push(Vec::new()); 
-
-    let pi = compute_pi(&tran);
-    println!("{:?}", pi);
-}

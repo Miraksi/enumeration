@@ -36,28 +36,3 @@ impl Automaton {
         return true;
     }
 }
-fn main() {
-    let string = "Hello World";
-    let mut v: Vec<HashMap<char, usize>> = Vec::new();
-    let mut tmp = HashMap::new();
-    tmp.insert('H', 1);
-    v.push(tmp);
-    tmp = HashMap::new();
-    tmp.insert('e', 2);
-    v.push(tmp);
-    tmp = HashMap::new();
-    tmp.insert('l', 3);
-    v.push(tmp);
-    tmp = HashMap::new();
-    tmp.insert('l', 4);
-    v.push(tmp);
-    tmp = HashMap::new();
-    tmp.insert('o', 5);
-    v.push(tmp);
-    v.push(HashMap::new());
-    
-    let mut q_final: HashSet<usize> = HashSet::new();
-    q_final.insert(5);
-    let mut a = Automaton::new(q_final, v);
-    println!("{}",a.contains("Hello"));
-}
