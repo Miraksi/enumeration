@@ -3,9 +3,11 @@ mod default_graph;
 mod path_max_node;
 mod level_ancestor;
 
+
+
+
 use std::collections::HashMap;
 use path_max_node::PathMaxNode;
-
 
 fn main() {
     let mut delta: Vec<HashMap<char, usize>> = Vec::new();
@@ -18,7 +20,6 @@ fn main() {
     delta.push(HashMap::from([('b', 6)]));
     delta.push(HashMap::from([('b', 3)]));
 
-    println!("HashMap initialized");
     let path_max_node = PathMaxNode::new(&delta);
     path_max_node.show();
 }

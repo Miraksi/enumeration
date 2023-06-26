@@ -109,6 +109,7 @@ pub struct Connectivity {
 }
 impl Connectivity {
     pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
+        // println!("from: root: {}, parent: {:?}", root, parent);
         let mut nodes: Vec<Node> = compute_node_list(parent, children, root);
         let mapping = normalize(&mut nodes, root);
         let n = nodes.len();

@@ -9,7 +9,6 @@ pub struct PathMaxNode {
 
 impl PathMaxNode {
     pub fn new(delta: &Vec<HashMap<char, usize>>) -> Self {
-        println!("initializing PathMaxNode\n...");
         Self {
             d_graph: DefaultGraph::new(delta),
         }

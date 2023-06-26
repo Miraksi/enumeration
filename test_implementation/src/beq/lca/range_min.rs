@@ -14,7 +14,8 @@ pub struct RMQ {
 }
 // TODO change other constuctors
 impl RMQ {
-    pub fn new(input: Vec<u32>) -> Self {
+    pub fn new(mut input: Vec<u32>) -> Self {
+        input_padding(&mut input);
         let n = input.len() as u32;
         let k = log_floor(n)/ 2;        
         let mut new = Self {
@@ -23,7 +24,7 @@ impl RMQ {
             k: k as usize,
             block_min: Vec::new(),
             block_min_idx: Vec::new(),
-            sparse_idx: vec![Vec::new();log_floor(n) as usize], // is a sparse table, which only stores the indeces
+            sparse_idx: vec![Vec::new()], // is a sparse table, which only stores the indeces
             block_rmq: Vec::new(),
             block_mask: Vec::new(),
         };
@@ -57,12 +58,14 @@ impl RMQ {
         return (current_min, min_idx);
     }
 
+    //TODO check for correctness
     fn build_sparse(&mut self) {
         for x in self.block_min_idx.iter() {
             self.sparse_idx[0].push(*x);
         }
         let m = self.block_min_idx.len();
         for loglen in 1..=(log_floor(m as u32) as usize) {
+            self.sparse_idx.push(Vec::new());
             for i in 0..= m - (1 << loglen) {
                 let a = self.sparse_idx[loglen-1][i];
                 let b = self.sparse_idx[loglen-1][i + (1 << (loglen - 1))];
@@ -163,6 +166,13 @@ impl RMQ {
             return i;
         }
         return j;
+    }
+}
+
+fn input_padding(input: &mut Vec<u32>) {
+    while input.len() < 4 {
+        let last = input[input.len() - 1];
+        input.push(last + 1);
     }
 }
 

@@ -36,7 +36,7 @@ impl Node {
 // TODO what kind of queries do I get?
 // we maybe need lifetimes here
 #[derive(Debug)]
-pub struct LevelAncestor { //TODO CHANGE NAME
+pub struct LevelAncestor {
     n: usize,
     k: usize,                        // k = (log n) / 4
     root: usize,
@@ -336,7 +336,6 @@ fn hash_to_graph(k: usize, mut hash: u32) -> Vec<Node> {
         }
         hash = hash / 2;
     }
-    println!("");
     return graph;
 }
 

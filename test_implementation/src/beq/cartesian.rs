@@ -33,7 +33,6 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
     let mut last_occ: Vec<usize> = vec![0; parent.len()];
     
     let edge_lst = sorted_edge_list(children, weights);
-
     for (weight,(u,v)) in edge_lst.iter() {
         let len = c_tree.len();
         let mut tmp = Node::new(len, None, None, *weight, (*u, *v));
@@ -48,8 +47,7 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
         last_occ[*u] = max(last_occ[*u], len);
         last_occ[*v] = max(last_occ[*v], len);
         c_tree.push(tmp);
-
-        // println!("deleting ({}, {})", *u, *v);
+        
         con.delete(*u, *v);
 
         let u_idx = con.get_comp_idx(*u);
