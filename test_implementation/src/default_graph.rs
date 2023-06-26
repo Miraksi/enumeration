@@ -29,18 +29,15 @@ impl Tree {
             edge_list: edge_list.clone(),
             depth: depth,
             la: LevelAncestor::new(&parent, &edge_list, 0),
-            beq: Bottleneck::new(beq_parent, beq_children, beq_weights, edge_list.len()),
+            beq: Bottleneck::new(beq_parent, beq_children, beq_weights, 0),
             mapping: mapping,
         }
     }  
 }
 fn weigh_tree(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Vec<i64> {
-    let mut weight: Vec<i64> = Vec::new();
+    let mut weight: Vec<i64> = vec![0; mapping.len()];
     for i in 0..mapping.len() {    // for the root of independent trees, there is no w_q since 
-        if lq[mapping[i]].len() < 2 {
-            weight[i] = 0;
-        }
-        else {
+        if lq[mapping[i]].len() >= 2{
             let l = lq[mapping[i]][1].1;
             weight[i] = l as i64;
         }
@@ -49,23 +46,31 @@ fn weigh_tree(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, u32)
     return weight;
 }
 
+//assumes that root = 0
 fn to_beq_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<i64>) -> (Vec<usize>, Vec<Vec<usize>>, Vec<Vec<i64>>) {
     let mut beq_parent: Vec<usize> = vec![0; parent.len()];
     let mut beq_children: Vec<Vec<usize>> = vec![Vec::new(); children.len()];
-    let mut beq_weights: Vec<Vec<i64>> = vec![Vec::new(); children.len()*3];
+    let mut beq_weights: Vec<Vec<i64>> = vec![Vec::new(); children.len()];
+    let p_len = parent.len();
+    let mut new_root = 0;
 
-    for i in 0..parent.len() {
-        let upper = beq_parent.len();
-        let lower = beq_parent.len() + 1;
-        beq_parent[i] = upper;
-        beq_children[i] = vec![lower];
-        beq_parent.push(parent[i]);
-        beq_children.push(vec![i]);
-        beq_parent.push(i);
-        beq_children.push(children[i].clone());
-        beq_weights[upper] = vec![-weights[i]];
-        beq_weights[i] = vec![-weights[i]];
-        beq_weights[lower] = vec![i64::MAX; beq_children[lower].len()];
+    let mut queue: Vec<usize> = vec![0];
+    while !queue.is_empty() {
+        let current = queue.pop().unwrap();
+        for i in 0..children[current].len() {
+            let child = children[current][i];
+            queue.push(child);
+
+            let new = beq_parent.len();
+            beq_children[current].push(new);
+            beq_parent[child] = new;
+            //new
+            beq_parent.push(current);
+            beq_children.push(vec![child]);
+            
+            beq_weights[current].push(weights[current]);
+            beq_weights.push(vec![weights[child]]);
+        }
     }
     return (beq_parent, beq_children, beq_weights);
 }
@@ -82,11 +87,8 @@ pub struct Cycle {
 }
 impl Cycle {
     fn new(nodes: Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Self {
-        println!("constructing cycle\n...");
         let weights = weigh_cycle(&nodes, lq);
-        println!("weighing cycle done");
         let (c_root, c_parent, c_children) = cartesian_on_list(&weights);
-        println!("cartesian on list done");
         Self {
             nodes: nodes,
             lca: LCA::new(&c_parent, &c_children, c_root),
@@ -136,9 +138,7 @@ pub struct DefaultGraph {
 }
 impl DefaultGraph {
     pub fn new(delta: &Vec<HashMap<char, usize>>) -> Self {
-        println!("initializing default graph\n...");
         let (lq, default_edges) = compute_default_graph(delta);
-        println!("Lq and default edges done");
         let mut new = Self{
             lq: lq,
             components: Vec::new(),
@@ -148,22 +148,17 @@ impl DefaultGraph {
             mapping: vec![None; delta.len()],
         };
         new.rev_default_edges = reverse_edges(&new.default_edges);
-        println!("reversing edges done");
         new.compute_default_components();
-        println!("computing default components done");
         return new;
     }
 
     fn compute_default_components(&mut self) { //TODO think of a representation of default components
-        println!("computing default components\n...");
         let roots: Vec<usize> = find_roots(&self.default_edges);
-        println!("find roots done");
     
         for root in roots.iter() {
             let ind = self.calc_independent(*root);
             self.components.push(CompType::Ind(ind));
         }
-        println!("calc independent done");
         let mut visited: Vec<bool> = vec![false; self.default_edges.len()];
         for p in 0..self.comp_idx.len() {
             match self.mapping[p] {
@@ -208,16 +203,13 @@ impl DefaultGraph {
     }
 
     fn find_cycle(&mut self, mut current: usize, visited: &mut Vec<bool>) {
-        println!("finding cycle\n...");
         let mut next = self.default_edges[current][0];
         while !visited[next] {
             visited[current] = true;
             current = next;
             next = self.default_edges[current][0];
         }
-        println!("setting default edges done");
         let cycle = self.calc_cycle(next);
-        println!("calc cycle done");
         for p in cycle.nodes.iter() {
             self.calc_connected(*p);
         }
@@ -228,7 +220,6 @@ impl DefaultGraph {
     }
 
     fn calc_cycle(&mut self, start: usize) -> Cycle {
-        println!("calc cycle\n...");
         let mut current = start;
         let mut next = self.default_edges[current][0];
         let mut idx: usize = 0;
@@ -245,7 +236,6 @@ impl DefaultGraph {
 
             next = self.default_edges[current][0];
         }
-        println!("mapping done");
         return Cycle::new(mapping, &self.lq);
     }
 
@@ -278,7 +268,6 @@ impl DefaultGraph {
                         };
                     }
                 };
-                
             }
             if p == root {
                 edge_list[0] = edges;
