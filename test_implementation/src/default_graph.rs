@@ -12,8 +12,9 @@ pub enum CompType {
 }
 
 pub struct Tree {
-    edge_list: Vec<Vec<usize>>, 
+    pub edge_list: Vec<Vec<usize>>, 
     depth: Vec<usize>,
+    weights: Vec<i64>,
     pub la: LevelAncestor,
     pub beq: Bottleneck,
     pub mapping: Vec<usize>,    //map for internal to external;
@@ -28,6 +29,7 @@ impl Tree {
         Self {
             edge_list: edge_list.clone(),
             depth: depth,
+            weights: weights,
             la: LevelAncestor::new(&parent, &edge_list, 0),
             beq: Bottleneck::new(beq_parent, beq_children, beq_weights, 0),
             mapping: mapping,
@@ -41,7 +43,7 @@ fn weigh_tree(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, u32)
             let l = lq[mapping[i]][1].1;
             weight[i] = l as i64;
         }
-        weight[i] = weight[i] - depth[i] as i64;
+        weight[i] = depth[i] as i64 - weight[i];    //negated weight for range max
     }
     return weight;
 }
@@ -83,6 +85,7 @@ fn calc_depth(edge_list: &Vec<Vec<usize>>, depth: &mut Vec<usize>, curr: usize, 
 
 pub struct Cycle {
     pub nodes: Vec<usize>,
+    weights: Vec<i64>,
     pub lca: LCA,   // rmq over length 2m
 }
 impl Cycle {
@@ -91,6 +94,7 @@ impl Cycle {
         let (c_root, c_parent, c_children) = cartesian_on_list(&weights);
         Self {
             nodes: nodes,
+            weights: weights,
             lca: LCA::new(&c_parent, &c_children, c_root),
         }
     }
@@ -285,6 +289,15 @@ impl DefaultGraph {
             CompType::Ind(x) => x.depth[self.mapping[i].unwrap()],
             CompType::Con(x) => x.depth[self.mapping[i].unwrap()],
             CompType::Cyc(_) => panic!("no depth defined for cycles"),
+        }
+    }
+
+    pub fn get_weight(&self, i: usize) -> i64 {
+        let internal_idx = self.mapping[i].unwrap();
+        match &self.components[self.comp_idx[i].unwrap()] {
+            CompType::Ind(tree) => tree.weights[internal_idx],
+            CompType::Con(tree) => tree.weights[internal_idx],
+            CompType::Cyc(cycle) => cycle.weights[internal_idx],
         }
     }
 }
