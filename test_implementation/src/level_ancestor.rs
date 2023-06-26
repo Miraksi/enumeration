@@ -56,9 +56,9 @@ pub struct LevelAncestor {
 
 impl LevelAncestor {
     pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
-        let n = parent.len();
-        let k = (log_floor(n as u32)/4) as usize;
         let nodes = compute_node_list(parent, children, root);
+        let n = nodes.len();
+        let k = (log_floor(n as u32)/4) as usize;
         let mut new = Self {
             n: n,
             k: k,
@@ -309,7 +309,16 @@ fn compute_node_list(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usiz
         list.push(node);
     }
     list[root].parent = root;   //Sets the parent of the root to always be the root
+    if list.len() < 16 {
+        tree_padding(&mut list, root);
+    }
     return list;
+}
+
+fn tree_padding(list: &mut Vec<Node>, root: usize) {
+    while list.len() < 16 {
+        list.push(Node::new(root, Vec::new()));
+    }
 }
 
 fn max(a: usize, b: usize) -> usize { // TODO outsource
@@ -324,14 +333,14 @@ fn hash_to_graph(k: usize, mut hash: u32) -> Vec<Node> {
     let mut graph: Vec<Node> = vec![Node::new(0, Vec::new())];
     for _i in 0..2*k {
         if hash % 2 == 0 {
-            print!("0");
+            // print!("0");
             let new_idx = graph.len();
             graph[current].children.push(new_idx);
             graph.push(Node::new(current,Vec::new()));
             current = new_idx;
         }
         else {
-            print!("1");
+            // print!("1");
             current = graph[current].parent;
         }
         hash = hash / 2;
