@@ -3,6 +3,7 @@ pub mod lca;
 
 use cartesian::{Node, cartesian_on_tree, cartesian_to_tree};
 use lca::LCA;
+use crate::weight::Weight;
 
 
 pub struct Bottleneck {
@@ -12,7 +13,7 @@ pub struct Bottleneck {
 }
 
 impl Bottleneck {
-    pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, weights: Vec<Vec<i64>>, root: usize) -> Self {
+    pub fn new(parent: Vec<usize>, children: Vec<Vec<usize>>, weights: Vec<Vec<Weight>>, root: usize) -> Self {
         let (c_tree, last_occ) = cartesian_on_tree(&parent, &children, &weights, root);
         let (c_parent, c_children) = cartesian_to_tree(&c_tree);    // this returns parent and children of the cartesian tree while keeping the indices
         Self{

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use crate::{level_ancestor::LevelAncestor, beq::Bottleneck};
 use longest_path::compute_longest_pairs;
 use crate::beq::{lca::LCA, cartesian::cartesian_on_list};
+use crate::weight::{Weight, Weight::*};
 
 pub enum CompType {
     Ind(Tree),
@@ -14,7 +15,7 @@ pub enum CompType {
 pub struct Tree {
     pub edge_list: Vec<Vec<usize>>, 
     depth: Vec<usize>,
-    weights: Vec<i64>,
+    weights: Vec<Weight>,
     pub la: LevelAncestor,
     pub beq: Bottleneck,
     pub mapping: Vec<usize>,    //map for internal to external;
@@ -36,23 +37,23 @@ impl Tree {
         }
     }  
 }
-fn weigh_tree(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Vec<i64> {
-    let mut weight: Vec<i64> = vec![0; mapping.len()];
+fn weigh_tree(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, u32)>>) -> Vec<Weight> {
+    let mut weight: Vec<Weight> = vec![NInf; mapping.len()];
     for i in 0..mapping.len() {    // for the root of independent trees, there is no w_q since 
         if lq[mapping[i]].len() >= 2{
             let l = lq[mapping[i]][1].1;
-            weight[i] = l as i64;
+            weight[i] = Val(l as i64);
         }
-        weight[i] = depth[i] as i64 - weight[i];    //negated weight for range max
+        weight[i] = Val(depth[i] as i64) - weight[i];    //negated weight for range max
     }
     return weight;
 }
 
 //assumes that root = 0
-fn to_beq_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<i64>) -> (Vec<usize>, Vec<Vec<usize>>, Vec<Vec<i64>>) {
+fn to_beq_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Weight>) -> (Vec<usize>, Vec<Vec<usize>>, Vec<Vec<Weight>>) {
     let mut beq_parent: Vec<usize> = vec![0; parent.len()];
     let mut beq_children: Vec<Vec<usize>> = vec![Vec::new(); children.len()];
-    let mut beq_weights: Vec<Vec<i64>> = vec![Vec::new(); children.len()];
+    let mut beq_weights: Vec<Vec<Weight>> = vec![Vec::new(); children.len()];
     let p_len = parent.len();
     let mut new_root = 0;
 
@@ -292,7 +293,7 @@ impl DefaultGraph {
         }
     }
 
-    pub fn get_weight(&self, i: usize) -> i64 {
+    pub fn get_weight(&self, i: usize) -> Weight {
         let internal_idx = self.mapping[i].unwrap();
         match &self.components[self.comp_idx[i].unwrap()] {
             CompType::Ind(tree) => tree.weights[internal_idx],

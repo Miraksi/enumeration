@@ -2,6 +2,7 @@ mod beq;
 mod default_graph;
 mod path_max_node;
 mod level_ancestor;
+mod weight;
 
 // use level_ancestor::LevelAncestor;
 
@@ -31,5 +32,5 @@ fn main() {
     path_max_node.show();
     let pmn = path_max_node.get(4,2);
     println!("PathMaxNode(4,2) = {}", pmn);
-    println!("with weight: {}", path_max_node.d_graph.get_weight(pmn));
+    println!("with weight: {:?}", path_max_node.d_graph.get_weight(pmn));
 }
