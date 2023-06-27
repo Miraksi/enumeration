@@ -433,6 +433,12 @@ pub fn compute_node_list(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: 
         list.push(node);
     }
     list[root].parent = root;   //Sets the parent of the root to always be the root
+    //padding
+    while list.len() < 2 {
+        let len = list.len();
+        list[root].children.push(len);
+        list.push(Node::new(root, Vec::new()));
+    }
     return list;
 }
 
