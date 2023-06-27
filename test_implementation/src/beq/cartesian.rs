@@ -1,6 +1,6 @@
 mod connectivity;
 
-use connectivity::{Connectivity, Component, Side};
+use connectivity::{Connectivity, Side};
 use crate::weight::{Weight,w_rdxsort};
 
 #[derive(Clone,Debug)]

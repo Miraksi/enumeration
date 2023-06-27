@@ -173,7 +173,7 @@ impl Connectivity {
         self.add_component(u,v);
     }
 
-    pub fn get_comp_id(&self, u: usize) -> CompID {
+    fn get_comp_id(&self, u: usize) -> CompID {
         let cluster = self.cluster_mapping[u].unwrap();
         for bound in self.clusters[cluster].bounds.iter() {
             if self.connected(u, *bound) {

@@ -54,8 +54,6 @@ fn to_beq_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<We
     let mut beq_parent: Vec<usize> = vec![0; parent.len()];
     let mut beq_children: Vec<Vec<usize>> = vec![Vec::new(); children.len()];
     let mut beq_weights: Vec<Vec<Weight>> = vec![Vec::new(); children.len()];
-    let p_len = parent.len();
-    let mut new_root = 0;
 
     let mut queue: Vec<usize> = vec![0];
     while !queue.is_empty() {

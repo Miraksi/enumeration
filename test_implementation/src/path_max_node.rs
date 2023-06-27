@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 use crate::default_graph::{DefaultGraph, CompType};
-use crate::level_ancestor::LevelAncestor;
-use crate::beq::cartesian::Node;
 
 pub struct PathMaxNode {
     pub d_graph: DefaultGraph,
@@ -16,7 +14,7 @@ impl PathMaxNode {
 
     pub fn get(&self, s: usize, l: usize) -> usize {
         match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
-            CompType::Ind(tree) => return self.get_on_tree(s,l),
+            CompType::Ind(_) => return self.get_on_tree(s,l),
             CompType::Con(tree) => {
                 let depth = self.d_graph.get_depth(s);
                 if  depth > l {
@@ -31,7 +29,7 @@ impl PathMaxNode {
                     return on_tree;
                 }
             },
-            CompType::Cyc(cycle) => return self.get_on_cycle(s, l),
+            CompType::Cyc(_) => return self.get_on_cycle(s, l),
         }
     }
 
