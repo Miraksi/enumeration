@@ -1,6 +1,7 @@
 use tarjan::Tarjan;
 use rdxsort::*; //TODO test if its actually fast
 use std::collections::HashMap;
+use crate::weight::{Weight, Weight::*};
 
 mod tarjan;
 
@@ -13,7 +14,7 @@ enum Color {
     RED,
 }
 
-pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char,u32)>> { //Lq
+pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char,Weight)>> { //Lq
     let edges = compute_edge_list(&delta);
     let pi = compute_pi(&edges);
     let mut triple_list: Vec<(u32, char, usize)> = Vec::new(); // (pi(q'), a, q) instead of (q, pi(q'), a)
@@ -23,11 +24,11 @@ pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char
         }
     }
     triple_list.rdxsort();
-    let mut longest_pairs: Vec<Vec<(char,u32)>> = vec![Vec::new(); delta.len()];
+    let mut longest_pairs: Vec<Vec<(char,Weight)>> = vec![Vec::new(); delta.len()];
     for (length, a, q) in triple_list.iter().rev() {
         let tmp = match *length {
-            INFTY => (*a, INFTY),
-            _ => (*a, length + 1),
+            INFTY => (*a, Inf),
+            _ => (*a, Val((length + 1) as i64)),
         };
         longest_pairs[*q].push(tmp);
     }
