@@ -1,10 +1,12 @@
-use std::collections::{HashSet, HashMap};
+extern crate rdxsort;
+use rdxsort::RdxSort;
+
 use std::ops::{Add,Neg,Sub};
 use std::cmp::{PartialOrd,Ordering};
 use Weight::*;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-enum Weight {
+pub enum Weight {
     Val(i64),
     Inf,
     NInf,
@@ -66,41 +68,24 @@ impl Ord for Weight {
         }
     }
 }
-impl RdxSort for Vec<Weight> {
-    fn rdxsort(&mut self) {
-        let mut arr: Vec<i64> = Vec::new();
-        for w in self.iter() {
-            match *w {
-                Val(x) => arr.push(x),
-                Inf => arr.push(i64::MAX),
-                NInf => arr.push(i64::MIN),
-            }
+
+pub fn w_rdxsort(inp: Vec<(Weight,(usize, usize))>) -> Vec<(Weight,(usize, usize))> {
+    let mut arr: Vec<(i64,usize,usize)> = Vec::new();
+    for w in inp.iter() {
+        match *w {
+            (Val(x),(y,z)) => arr.push((x,y,z)),
+            (Inf,(y,z)) => arr.push((i64::MAX,y,z)),
+            (NInf,(y,z)) => arr.push((i64::MIN,y,z)),
         }
-        arr.rdxsort();
-        let mut new: Vec<Weight> = Vec::new();
-        for w in arr.iter() {
-            if *w == i64::MAX {
-                new.push(Inf);
-            }
-            else if *w == i64::MIN {
-                new.push(NInf);
-            }
-            else {
-                new.push(Val(*w));
-            }
-        }
-        self = new;
     }
-}
-
-
-
-fn main() {
-    let x = Val(-1);
-    let y = Inf;
-    println!("{:?}",x-y);
-    let mut arr = vec![Val(-1), Inf, NInf, Val(3), Val(5), Inf, NInf];
-    arr.sort();
-    println!("{:?}", arr);
-    println!("{:?}", Val(-2) == Val(-2));
+    arr.rdxsort();
+    let mut new: Vec<(Weight,(usize,usize))> = Vec::new();
+    for w in arr.iter() {
+        match *w {
+            (i64::MAX,y,z) => new.push((Inf,(y,z))),
+            (i64::MIN,y,z) => new.push((Inf,(y,z))),
+            (x,y,z) => new.push((Val(x),(y,z))),
+        };
+    }
+    return new;
 }

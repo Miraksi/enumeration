@@ -3,7 +3,6 @@ pub mod range_min;
 use range_min::RMQ;
 
 pub struct LCA {
-    euler_tour: Vec<u32>,
     idx_map: Vec<usize>,    // stores the index of the Node of the euler tour to the original node
     last_occ: Vec<usize>,   // stores the last occurrence of out inital node in the tour
     rmq: RMQ,
@@ -17,7 +16,6 @@ impl LCA {
         euler_dfs(&mut tour, &mut map, &mut last_occ, &parent, &children, root, 0);
 
         Self {
-            euler_tour: tour.clone(),
             idx_map: map,
             last_occ: last_occ,
             rmq: RMQ::new(tour),
