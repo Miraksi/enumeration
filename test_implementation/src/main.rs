@@ -29,5 +29,7 @@ fn main() {
 
     let path_max_node = PathMaxNode::new(&delta);
     path_max_node.show();
-    println!("PathMaxNode(4,2) = {}", path_max_node.get(4,2));
+    let pmn = path_max_node.get(4,2);
+    println!("PathMaxNode(4,2) = {}", pmn);
+    println!("with weight: {}", path_max_node.d_graph.get_weight(pmn));
 }
