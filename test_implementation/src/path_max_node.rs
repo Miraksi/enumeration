@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use crate::default_graph::{DefaultGraph, CompType};
+use crate::weight::Weight;
 
 pub struct PathMaxNode {
     pub d_graph: DefaultGraph,
@@ -12,25 +13,32 @@ impl PathMaxNode {
         }
     }
 
-    pub fn get(&self, s: usize, l: usize) -> usize {
+    pub fn get(&self, s: usize, l: usize) -> Option<usize> {
+        let mut best_node = 0;
         match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
-            CompType::Ind(_) => return self.get_on_tree(s,l),
+            CompType::Ind(_) => best_node = self.get_on_tree(s,l),
             CompType::Con(tree) => {
                 let depth = self.d_graph.get_depth(s);
                 if  depth > l {
-                    return self.get_on_tree(s, l);
+                    best_node = self.get_on_tree(s, l);
                 }
                 else {
                     let on_tree = self.get_on_tree(s, depth);
                     let on_cycle = self.get_on_cycle(tree.mapping[0], l - depth);
                     if self.d_graph.get_weight(on_tree) < self.d_graph.get_weight(on_cycle) {
-                        return on_cycle;
+                        best_node =  on_cycle;
                     }
-                    return on_tree;
+                    else {
+                        best_node = on_tree;
+                    }
                 }
             },
-            CompType::Cyc(_) => return self.get_on_cycle(s, l),
+            CompType::Cyc(_) => best_node = self.get_on_cycle(s, l),
+        };
+        if Weight::Inf == self.d_graph.get_weight(best_node) {
+            return None;
         }
+        return Some(best_node);
     }
 
     fn get_on_tree(&self, s: usize, l: usize) -> usize {
