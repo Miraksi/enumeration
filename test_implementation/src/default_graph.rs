@@ -22,13 +22,11 @@ pub struct Tree {
 }
 impl Tree {
     fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>, lq: &Vec<Vec<(char, Weight)>>) -> Self {
-        println!("constructing tree...");
         let mut depth: Vec<usize> = vec![0; edge_list.len()];
         let parent = compute_parents(&edge_list);
         calc_depth(&edge_list, &mut depth, 0, 0);
         let weights = weigh_tree(&depth, &mapping, lq);  //is needed for PathMaxNode
         let (beq_parent, beq_children, beq_weights) = to_beq_tree(&parent, &edge_list, &weights);
-        println!("precomputing done");
         let new = Self {
             edge_list: edge_list.clone(),
             depth: depth,
@@ -37,7 +35,6 @@ impl Tree {
             beq: Bottleneck::new(beq_parent, beq_children, beq_weights, 0),
             mapping: mapping,
         };
-        println!("tree done");
         return new;
     }  
 }
@@ -53,6 +50,7 @@ fn weigh_tree(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, Weig
     return weight;
 }
 
+//converts vertex weighed tree to edge weighed tree
 //assumes that root = 0
 fn to_beq_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Weight>) -> (Vec<usize>, Vec<Vec<usize>>, Vec<Vec<Weight>>) {
     let mut beq_parent: Vec<usize> = vec![0; parent.len()];
@@ -93,7 +91,6 @@ pub struct Cycle {
 }
 impl Cycle {
     fn new(nodes: Vec<usize>, lq: &Vec<Vec<(char, Weight)>>) -> Self {
-        println!("constructing cycle...");
         let weights = weigh_cycle(&nodes, lq);
         let (c_root, c_parent, c_children) = cartesian_on_list(&weights);
         let new = Self {
@@ -101,7 +98,6 @@ impl Cycle {
             weights: weights,
             lca: LCA::new(&c_parent, &c_children, c_root),
         };
-        println!("cycle done");
         return new;
     }
 }

@@ -12,6 +12,13 @@ mod weight;
 //     let con = Connectivity::new(&parent, &children, 0);
 // }
 
+// use beq::lca::LCA;
+
+// fn main() {
+//     let parent = vec![];
+//     let children = vec![];
+//     let tmp = LCA::new(&parent, &children, 0);
+// }
 
 use std::collections::HashMap;
 use path_max_node::PathMaxNode;

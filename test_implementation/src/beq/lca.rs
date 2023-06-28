@@ -13,6 +13,9 @@ impl LCA {
         let mut tour: Vec<u32> = Vec::new();
         let mut map: Vec<usize> = Vec::new();
         let mut last_occ: Vec<usize> = vec![0; parent.len()];
+        if parent.len() == 0 {
+            return LCA::new(&vec![0], &vec![vec![]], 0);
+        }
         euler_dfs(&mut tour, &mut map, &mut last_occ, &parent, &children, root, 0);
 
         Self {
