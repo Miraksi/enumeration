@@ -27,10 +27,10 @@ impl PathMaxNode {
                     let on_tree = self.get_on_tree(s, depth);
                     let on_cycle = self.get_on_cycle(tree.mapping[0], l - depth);
                     if self.d_graph.get_weight(on_tree) < self.d_graph.get_weight(on_cycle) {
-                        best_node =  on_cycle;
+                        best_node = on_tree;
                     }
                     else {
-                        best_node = on_tree;
+                        best_node = on_cycle;
                     }
                 }
             },
