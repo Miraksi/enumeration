@@ -205,7 +205,7 @@ impl DefaultGraph {
             self.calc_connected(*p);
         }
         for p in cycle.nodes.iter() {
-            self.mapping[*p] = Some(self.components.len());
+            self.comp_idx[*p] = Some(self.components.len());
         }
         self.components.push(CompType::Cyc(cycle));
     }

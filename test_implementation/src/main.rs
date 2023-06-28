@@ -40,6 +40,6 @@ fn main() {
     let path_max_node = PathMaxNode::new(&delta);
     println!("initialized");
     path_max_node.show();
-    let pmn = path_max_node.get(4,2);
-    println!("PathMaxNode(4,2) = {:?}", pmn);
+    let pmn = path_max_node.get(4,4);
+    println!("PathMaxNode(4,4) = {:?}", pmn);
 }

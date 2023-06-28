@@ -14,6 +14,7 @@ impl PathMaxNode {
     }
 
     pub fn get(&self, s: usize, l: usize) -> Option<usize> {
+        println!("get({},{})",s,l);
         let mut best_node = 0;
         match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             CompType::Ind(_) => best_node = self.get_on_tree(s,l),
@@ -42,6 +43,7 @@ impl PathMaxNode {
     }
 
     fn get_on_tree(&self, s: usize, l: usize) -> usize {
+        println!("get_on_tree({s},{l})");
         let internal_idx = self.d_graph.mapping[s].unwrap();
         match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             CompType::Ind(tree) => {
@@ -60,6 +62,7 @@ impl PathMaxNode {
 
     // TODO check, if the indicies for lca are set right
     fn get_on_cycle(&self, s: usize, l: usize) -> usize {
+        println!("get_on_cycle({s},{l})");
         let i = self.d_graph.mapping[s].unwrap();
         if let CompType::Cyc(cycle) = &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             let len = cycle.nodes.len();
@@ -82,7 +85,15 @@ impl PathMaxNode {
                 CompType::Ind(tree) => println!("Ind{:?}", tree.mapping),
                 CompType::Con(tree) => println!("Con{:?}", tree.mapping),
                 CompType::Cyc(cycle) => println!("Cyc{:?}", cycle.nodes),
-            }
+            };
+        }
+        for i in 0..self.d_graph.comp_idx.len(){
+            let idx = self.d_graph.comp_idx[i].unwrap();
+            match self.d_graph.components[idx] {
+                CompType::Ind(_) => println!("{i}: Ind"),
+                CompType::Con(_) => println!("{i}: Con"),
+                CompType::Cyc(_) => println!("{i}: Cyc"),
+            };
         }
     }
 }
