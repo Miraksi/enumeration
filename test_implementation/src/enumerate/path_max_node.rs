@@ -14,6 +14,9 @@ impl PathMaxNode {
     }
 
     pub fn get(&self, s: usize, l: usize) -> Option<(usize, usize)> {
+        if l == 0 {
+            return None;
+        }
         println!("get({},{})",s,l);
         let mut best_node = 0;
         let mut d = 0;
