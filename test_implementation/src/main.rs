@@ -1,6 +1,6 @@
 mod beq;
 mod default_graph;
-mod path_max_node;
+mod enumerate;
 mod level_ancestor;
 mod weight;
 
@@ -21,7 +21,7 @@ mod weight;
 // }
 
 use std::collections::HashMap;
-use path_max_node::PathMaxNode;
+use enumerate::path_max_node::PathMaxNode;
 
 fn main() {
     let mut delta: Vec<HashMap<char, usize>> = Vec::new();
@@ -40,6 +40,6 @@ fn main() {
     let path_max_node = PathMaxNode::new(&delta);
     println!("initialized");
     path_max_node.show();
-    let pmn = path_max_node.get(4,4);
-    println!("PathMaxNode(4,4) = {:?}", pmn);
+    let pmn = path_max_node.get(2,3);
+    println!("PathMaxNode(2,3) = {:?}", pmn);
 }

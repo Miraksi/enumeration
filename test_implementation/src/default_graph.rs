@@ -275,7 +275,7 @@ impl DefaultGraph {
         match &self.components[self.comp_idx[i].unwrap()] {
             CompType::Ind(x) => x.depth[self.mapping[i].unwrap()],
             CompType::Con(x) => x.depth[self.mapping[i].unwrap()],
-            CompType::Cyc(_) => panic!("no depth defined for cycles"),
+            CompType::Cyc(_) => 0, //returning zero since they might be roots of connected trees
         }
     }
 

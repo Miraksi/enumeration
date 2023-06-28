@@ -13,66 +13,78 @@ impl PathMaxNode {
         }
     }
 
-    pub fn get(&self, s: usize, l: usize) -> Option<usize> {
+    pub fn get(&self, s: usize, l: usize) -> Option<(usize, usize)> {
         println!("get({},{})",s,l);
         let mut best_node = 0;
+        let mut d = 0;
         match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
-            CompType::Ind(_) => best_node = self.get_on_tree(s,l),
+            CompType::Ind(_) => (best_node, d) = self.get_on_tree(s,l),
             CompType::Con(tree) => {
                 let depth = self.d_graph.get_depth(s);
                 if  depth > l {
-                    best_node = self.get_on_tree(s, l);
+                    (best_node, d) = self.get_on_tree(s, l);
                 }
                 else {
-                    let on_tree = self.get_on_tree(s, depth);
-                    let on_cycle = self.get_on_cycle(tree.mapping[0], l - depth);
+                    let (on_tree, t_dist) = self.get_on_tree(s, depth);
+                    let (on_cycle, c_dist) = self.get_on_cycle(tree.mapping[0], l - depth);
                     if self.d_graph.get_weight(on_tree) < self.d_graph.get_weight(on_cycle) {
                         best_node = on_tree;
+                        d = t_dist;
                     }
                     else {
                         best_node = on_cycle;
+                        d = depth + c_dist;
                     }
                 }
             },
-            CompType::Cyc(_) => best_node = self.get_on_cycle(s, l),
+            CompType::Cyc(_) => (best_node, d) = self.get_on_cycle(s, l),
         };
         if Weight::Inf == self.d_graph.get_weight(best_node) {
             return None;
         }
-        return Some(best_node);
+        return Some((best_node, d));
     }
 
-    fn get_on_tree(&self, s: usize, l: usize) -> usize {
-        println!("get_on_tree({s},{l})");
+    fn get_on_tree(&self, s: usize, l: usize) -> (usize, usize) {
         let internal_idx = self.d_graph.mapping[s].unwrap();
+        let mut res = 0;
         match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             CompType::Ind(tree) => {
                 let ancestor = tree.la.level_ancestor(internal_idx, l);
                 let node = tree.beq.get(internal_idx, ancestor);
-                return tree.mapping[min(node.edge)];
+                res = tree.mapping[min(node.edge)];
             },
             CompType::Con(tree) => {
                 let ancestor = tree.la.level_ancestor(internal_idx, l);
                 let node = tree.beq.get(internal_idx, ancestor);
-                return tree.mapping[min(node.edge)];
+                res = tree.mapping[min(node.edge)];
             },
             CompType::Cyc(_) => panic!("get on trees called on cycle!"),
         }
+        let d = self.d_graph.get_depth(s) - self.d_graph.get_depth(res);
+        return (res, d);
     }
 
     // TODO check, if the indicies for lca are set right
-    fn get_on_cycle(&self, s: usize, l: usize) -> usize {
-        println!("get_on_cycle({s},{l})");
+    fn get_on_cycle(&self, s: usize, l: usize) -> (usize, usize) {
         let i = self.d_graph.mapping[s].unwrap();
         if let CompType::Cyc(cycle) = &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             let len = cycle.nodes.len();
+            let mut max_idx = 0;
             if l > 2*len {
-                let max_idx = cycle.lca.get(0, len - 1);
-                return cycle.nodes[max_idx];
+                max_idx = cycle.lca.get(0, len - 1);
             }
-            let j = (i + l) % len;
-            let max_idx = cycle.lca.get(i, len + j - 1);
-            return cycle.nodes[max_idx];
+            else {
+                let j = (i + l) % len;
+                max_idx = cycle.lca.get(i, len + j - 1);
+            }
+            //TODO get this cleaned plssss
+            max_idx = max_idx % len;
+            let d = (i + l) % len;
+            if d <= max_idx {
+                return (cycle.nodes[max_idx], l - d - (len - max_idx));
+            }
+            return (cycle.nodes[max_idx], l - d + max_idx);
         }
         else {
             panic!("get on cycle called on tree!");
