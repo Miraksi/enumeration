@@ -53,12 +53,12 @@ impl PathMaxNode {
         let mut res = 0;
         match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             CompType::Ind(tree) => {
-                let ancestor = tree.la.level_ancestor(internal_idx, l);
+                let ancestor = tree.la.level_ancestor(internal_idx, l - 1); // -1 since we want q != s'
                 let node = tree.beq.get(internal_idx, ancestor);
                 res = tree.mapping[min(node.edge)];
             },
             CompType::Con(tree) => {
-                let ancestor = tree.la.level_ancestor(internal_idx, l);
+                let ancestor = tree.la.level_ancestor(internal_idx, l - 1);
                 let node = tree.beq.get(internal_idx, ancestor);
                 res = tree.mapping[min(node.edge)];
             },
@@ -70,22 +70,24 @@ impl PathMaxNode {
 
     // TODO check, if the indicies for lca are set right
     fn get_on_cycle(&self, s: usize, l: usize) -> (usize, usize) {
+        println!("get_on_cycle({s},{l})");
         let i = self.d_graph.mapping[s].unwrap();
         if let CompType::Cyc(cycle) = &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             let len = cycle.nodes.len();
             let mut max_idx = 0;
-            if l > 2*len {
+            if l > len {
                 max_idx = cycle.lca.get(0, len - 1);
             }
             else {
                 let j = (i + l) % len;
-                max_idx = cycle.lca.get(i, len + j - 1);
+                max_idx = cycle.lca.get(i, len + j - 1);   //TODO this needs to be checked
             }
             //TODO get this cleaned plssss
             max_idx = max_idx % len;
+            println!("max_idx: {}", max_idx);
             let d = (i + l) % len;
             if d <= max_idx {
-                return (cycle.nodes[max_idx], l - d - (len - max_idx));
+                return (cycle.nodes[max_idx], l - (d + len - max_idx));
             }
             return (cycle.nodes[max_idx], l - d + max_idx);
         }

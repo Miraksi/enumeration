@@ -287,6 +287,10 @@ impl DefaultGraph {
             CompType::Cyc(cycle) => cycle.weights[internal_idx],
         }
     }
+
+    pub fn get_succesor(&self, q: usize) -> Option<usize> {
+        return self.default_edges[q].get(0).copied();
+    }
 }
 
 //TODO Testing
