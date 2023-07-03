@@ -279,12 +279,13 @@ impl DefaultGraph {
         }
     }
 
-    pub fn get_weight(&self, i: usize) -> Weight {
+    // returns the actual weight (not negated)
+    pub fn get_weight(&self, i: usize) -> Weight { 
         let internal_idx = self.mapping[i].unwrap();
         match &self.components[self.comp_idx[i].unwrap()] {
-            CompType::Ind(tree) => tree.weights[internal_idx],
-            CompType::Con(tree) => tree.weights[internal_idx],
-            CompType::Cyc(cycle) => cycle.weights[internal_idx],
+            CompType::Ind(tree) => -tree.weights[internal_idx],
+            CompType::Con(tree) => -tree.weights[internal_idx],
+            CompType::Cyc(cycle) => -cycle.weights[internal_idx],
         }
     }
 

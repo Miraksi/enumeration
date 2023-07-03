@@ -65,7 +65,19 @@ impl<'a> Tarjan<'a> {
             if component.len() > 1 {
                 self.scc.push(component);
             }
+            else if self.has_loop(v) {
+                self.scc.push(component);
+            }
         }
+    }
+
+    fn has_loop(&self, v: usize) -> bool {
+        for w in self.edges[v].iter() {
+            if *w == v {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

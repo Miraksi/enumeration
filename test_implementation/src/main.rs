@@ -21,7 +21,7 @@ mod weight;
 // }
 
 use std::collections::HashMap;
-use enumerate::path_max_node::PathMaxNode;
+use enumerate::Enumerate;
 
 fn main() {
     let mut delta: Vec<HashMap<char, usize>> = Vec::new();
@@ -37,9 +37,10 @@ fn main() {
     delta.push(HashMap::from([('b', 8)]));
 
 
-    let path_max_node = PathMaxNode::new(&delta);
+    let mut enumerate = Enumerate::new(delta);
     println!("initialized");
-    path_max_node.show();
-    let pmn = path_max_node.get(1,1);
-    println!("PathMaxNode(1,1) = {:?}", pmn);
+    enumerate.pmn.show();
+    println!("Lq: {:?}", enumerate.pmn.d_graph.lq);
+    println!("-----------------------------------");
+    enumerate.recurse('a', 0, 8);
 }

@@ -30,7 +30,7 @@ impl PathMaxNode {
                 else {
                     let (on_tree, t_dist) = self.get_on_tree(s, depth);
                     let (on_cycle, c_dist) = self.get_on_cycle(tree.mapping[0], l - depth);
-                    if self.d_graph.get_weight(on_tree) < self.d_graph.get_weight(on_cycle) {
+                    if self.d_graph.get_weight(on_tree) > self.d_graph.get_weight(on_cycle) {
                         best_node = on_tree;
                         d = t_dist;
                     }
@@ -42,7 +42,7 @@ impl PathMaxNode {
             },
             CompType::Cyc(_) => (best_node, d) = self.get_on_cycle(s, l),
         };
-        if Weight::Inf == self.d_graph.get_weight(best_node) {
+        if Weight::NInf == self.d_graph.get_weight(best_node) {
             return None;
         }
         return Some((best_node, d));
@@ -70,7 +70,6 @@ impl PathMaxNode {
 
     // TODO check, if the indicies for lca are set right
     fn get_on_cycle(&self, s: usize, l: usize) -> (usize, usize) {
-        println!("get_on_cycle({s},{l})");
         let i = self.d_graph.mapping[s].unwrap();
         if let CompType::Cyc(cycle) = &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             let len = cycle.nodes.len();
@@ -84,7 +83,6 @@ impl PathMaxNode {
             }
             //TODO get this cleaned plssss
             max_idx = max_idx % len;
-            println!("max_idx: {}", max_idx);
             let d = (i + l) % len;
             if d <= max_idx {
                 return (cycle.nodes[max_idx], l - (d + len - max_idx));

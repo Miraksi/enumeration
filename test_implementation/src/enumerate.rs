@@ -7,7 +7,7 @@ use std::collections::VecDeque;
 
 pub struct Enumerate {
     delta: Vec<HashMap<char, usize>>,
-    pmn: PathMaxNode,
+    pub pmn: PathMaxNode,
     stack_s: Vec<(char,usize,usize)>,
 }
 
@@ -22,6 +22,7 @@ impl Enumerate {
     }
 
     pub fn recurse(&mut self, a: char, q: usize, l: usize) {
+        println!("called with a: {a}, q: {q}, l: {l}");
         self.stack_s.push((a,q,l)); //2
         //push stackframe of this call and top element of stack_s onto stack_c //3
         //Output(n-l-1,a,q,l)   //4
@@ -31,7 +32,9 @@ impl Enumerate {
         let mut last: (char, usize, usize) = ('a',0,0);
         let mut u: VecDeque<((usize,usize),usize,usize)> = VecDeque::new(); //6
         if let Some((p,d)) = self.pmn.get(q,l) { //7
+            println!("PathMaxNode({q},{l}) = ({q},{d})");
             let (b,w) = self.pmn.d_graph.lq[p][1];  //10
+            println!("w_{p}: {:?}", w);
             if Val(d as i64) + w >= Val(l as i64) {     //8
                 u.push_back(((q,l),q,0)); //9
                 let new_p = self.delta[p].get(&b).unwrap();
@@ -39,6 +42,7 @@ impl Enumerate {
             }
             else {  //12
                 self.remove_this_call();    //13
+                println!("early return");
                 return; //14
             }
         }
