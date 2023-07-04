@@ -80,8 +80,7 @@ impl PathMaxNode {
                 max_idx = cycle.lca.get(0, len - 1);
             }
             else {
-                let j = (i + l) % len;
-                max_idx = cycle.lca.get(i, len + j - 1);   //TODO this needs to be checked
+                max_idx = cycle.lca.get(i, i + l - 1);   //TODO this needs to be checked
             }
             //TODO get this cleaned plssss
             max_idx = max_idx % len;
@@ -89,7 +88,7 @@ impl PathMaxNode {
             if d <= max_idx {
                 return (cycle.nodes[max_idx], l - (d + len - max_idx));
             }
-            return (cycle.nodes[max_idx], l - d + max_idx);
+            return (cycle.nodes[max_idx], (l + max_idx) - d);
         }
         else {
             panic!("get on cycle called on tree!");
