@@ -17,7 +17,6 @@ impl PathMaxNode {
         if l == 0 {
             return None;
         }
-        println!("get({},{})",s,l);
         let mut best_node = 0;
         let mut d = 0;
         match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
@@ -70,6 +69,9 @@ impl PathMaxNode {
 
     // TODO check, if the indicies for lca are set right
     fn get_on_cycle(&self, s: usize, l: usize) -> (usize, usize) {
+        if l == 0 {
+            return (s,0);
+        }
         let i = self.d_graph.mapping[s].unwrap();
         if let CompType::Cyc(cycle) = &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             let len = cycle.nodes.len();

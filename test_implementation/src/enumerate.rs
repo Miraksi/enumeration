@@ -8,6 +8,7 @@ use std::collections::VecDeque;
 pub struct Enumerate {
     delta: Vec<HashMap<char, usize>>,
     pub pmn: PathMaxNode,
+    n: usize,
     stack_s: Vec<(char,usize,usize)>,
 }
 
@@ -17,22 +18,26 @@ impl Enumerate {
         Self {
             delta: delta,
             pmn: pmn,
+            n: 0,
             stack_s: Vec::new(),
         }
+    }
+    pub fn set_n(&mut self, n: usize) {
+        self.n = n;
     }
 
     pub fn recurse(&mut self, a: char, q: usize, l: usize) {
         println!("called with a: {a}, q: {q}, l: {l}");
         self.stack_s.push((a,q,l)); //2
         //push stackframe of this call and top element of stack_s onto stack_c //3
-        //Output(n-l-1,a,q,l)   //4
+        println!("Output: ({},{},{},{})",self.n as i64 - l as i64 - 1,a,q,l);   //4
         if l == 0 {
             return; //5
         }
         let mut last: (char, usize, usize) = ('a',0,0);
         let mut u: VecDeque<((usize,usize),usize,usize)> = VecDeque::new(); //6
         if let Some((p,d)) = self.pmn.get(q,l) { //7
-            println!("PathMaxNode({q},{l}) = ({q},{d})");
+            println!("PathMaxNode({q},{l}) = ({p},{d})");
             let (b,w) = self.pmn.d_graph.lq[p][1];  //10
             println!("w_{p}: {:?}", w);
             if Val(d as i64) + w >= Val(l as i64) {     //8
@@ -42,7 +47,6 @@ impl Enumerate {
             }
             else {  //12
                 self.remove_this_call();    //13
-                println!("early return");
                 return; //14
             }
         }
@@ -53,6 +57,7 @@ impl Enumerate {
         while !u.is_empty() {   //16
             let ((s,j),q,h) = u.pop_front().unwrap();   //17
             let (next_q, f) = self.pmn.get(s,j).unwrap(); //17
+            println!("PathMaxNode({s},{j}) = ({next_q},{f})");
             match self.pmn.get(s,f) {   //18
                 Some((r,e)) => {
                     let w_r = self.pmn.d_graph.get_weight(r);
@@ -80,11 +85,14 @@ impl Enumerate {
                 if Val(h as i64) + Val(f as i64) + *g + Val(1) < Val(l as i64) {
                     break;
                 }
-                self.recurse(*b, next_q, l - h - f - 1);
+                println!("recurse");
+                let branch = self.delta[next_q].get(b).unwrap();
+                self.recurse(*b, *branch, l - h - f - 1);
                 // set the top element of S to the element pointed by the top element of C
                 x += 1;
             }
         }
+        println!("last");
         self.stack_s.pop();
         self.recurse(last.0, last.1, last.2);
         return;

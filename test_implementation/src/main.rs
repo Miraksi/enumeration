@@ -36,11 +36,21 @@ fn main() {
     delta.push(HashMap::from([('a', 8)]));
     delta.push(HashMap::from([('b', 8)]));
 
-
     let mut enumerate = Enumerate::new(delta);
     println!("initialized");
     enumerate.pmn.show();
     println!("Lq: {:?}", enumerate.pmn.d_graph.lq);
     println!("-----------------------------------");
-    enumerate.recurse('a', 0, 8);
+    enumerate.set_n(7);
+    enumerate.recurse(' ', 0, 7);
 }
+
+// delta.push(HashMap::from([('a', 1)]));
+// delta.push(HashMap::from([('a', 2), ('b', 4)]));
+// delta.push(HashMap::from([('a', 3), ('b', 5)]));
+// delta.push(HashMap::from([('a', 3)]));
+// delta.push(HashMap::from([('a', 6)]));
+// delta.push(HashMap::from([('a', 6)]));
+// delta.push(HashMap::from([('a', 6)]));
+
+
