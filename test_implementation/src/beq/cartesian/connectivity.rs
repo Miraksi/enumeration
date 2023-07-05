@@ -71,14 +71,12 @@ impl LinkedListSet {
     }
 }
 
-#[derive(Debug)]
 pub struct Cluster {
     root: usize,
     nodes: Vec<usize>,
     bounds: Vec<usize>,
     edge_map: HashMap<(usize, usize), usize>,
     current_edges: usize,
-    root_path: HashMap<usize, usize>,
 }
 impl Cluster {
     fn new(root: usize, nodes: Vec<usize>, bounds: Vec<usize>) -> Self {
@@ -89,12 +87,10 @@ impl Cluster {
             bounds: bounds,
             edge_map: HashMap::new(),
             current_edges: (1 << size-1) -1,
-            root_path: HashMap::from([(root, 0)]),
         }
     }
 }
 
-#[derive(Debug)]
 pub struct Connectivity {
     pub root: usize,
     pub nodes: Vec<Node>,

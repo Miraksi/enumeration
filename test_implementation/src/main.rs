@@ -39,7 +39,6 @@ fn main() {
     let mut enumerate = Enumerate::new(delta);
     println!("initialized");
     enumerate.pmn.show();
-    println!("Lq: {:?}", enumerate.pmn.d_graph.lq);
     println!("-----------------------------------");
     enumerate.set_n(9);
     enumerate.recurse(' ', 0, 9, 0);

@@ -17,29 +17,25 @@ impl PathMaxNode {
         if l == 0 {
             return None;
         }
-        let mut best_node = 0;
-        let mut d = 0;
-        match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
-            CompType::Ind(_) => (best_node, d) = self.get_on_tree(s,l),
+        let (best_node ,d) = match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
+            CompType::Ind(_) => self.get_on_tree(s,l),
             CompType::Con(tree) => {
                 let depth = self.d_graph.get_depth(s);
                 if  depth >= l {
-                    (best_node, d) = self.get_on_tree(s, l);
+                    self.get_on_tree(s, l)
                 }
                 else {
                     let (on_tree, t_dist) = self.get_on_tree(s, depth);
                     let (on_cycle, c_dist) = self.get_on_cycle(tree.mapping[0], l - depth);
                     if self.d_graph.get_weight(on_tree) > self.d_graph.get_weight(on_cycle) {
-                        best_node = on_tree;
-                        d = t_dist;
+                        (on_tree, t_dist)
                     }
                     else {
-                        best_node = on_cycle;
-                        d = depth + c_dist;
+                        (on_cycle, depth + c_dist)
                     }
                 }
             },
-            CompType::Cyc(_) => (best_node, d) = self.get_on_cycle(s, l),
+            CompType::Cyc(_) => self.get_on_cycle(s, l),
         };
         if Weight::NInf == self.d_graph.get_weight(best_node) {
             return None;
@@ -49,20 +45,19 @@ impl PathMaxNode {
 
     fn get_on_tree(&self, s: usize, l: usize) -> (usize, usize) {
         let internal_idx = self.d_graph.mapping[s].unwrap();
-        let mut res = 0;
-        match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
+        let res = match &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             CompType::Ind(tree) => {
                 let ancestor = tree.la.level_ancestor(internal_idx, l - 1); // -1 since we want q != s'
                 let node = tree.beq.get(internal_idx, ancestor);
-                res = tree.mapping[min(node.edge)];
+                tree.mapping[min(node.edge)]
             },
             CompType::Con(tree) => {
                 let ancestor = tree.la.level_ancestor(internal_idx, l - 1);
                 let node = tree.beq.get(internal_idx, ancestor);
-                res = tree.mapping[min(node.edge)];
+                tree.mapping[min(node.edge)]
             },
             CompType::Cyc(_) => panic!("get on trees called on cycle!"),
-        }
+        };
         let d = self.d_graph.get_depth(s) - self.d_graph.get_depth(res);
         return (res, d);
     }
@@ -75,13 +70,14 @@ impl PathMaxNode {
         let i = self.d_graph.mapping[s].unwrap();
         if let CompType::Cyc(cycle) = &self.d_graph.components[self.d_graph.comp_idx[s].unwrap()] {
             let len = cycle.nodes.len();
-            let mut max_idx = 0;
-            if l > len {
-                max_idx = cycle.lca.get(0, len - 1);
-            }
-            else {
-                max_idx = cycle.lca.get(i, i + l - 1);   //TODO this needs to be checked
-            }
+            let mut max_idx = {
+                if l > len {
+                    cycle.lca.get(0, len - 1)
+                }
+                else {
+                    cycle.lca.get(i, i + l - 1)   //TODO this needs to be checked
+                }
+            };
             //TODO get this cleaned plssss
             max_idx = max_idx % len;
             let d = (i + l) % len;
