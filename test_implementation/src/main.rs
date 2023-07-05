@@ -41,8 +41,8 @@ fn main() {
     enumerate.pmn.show();
     println!("Lq: {:?}", enumerate.pmn.d_graph.lq);
     println!("-----------------------------------");
-    enumerate.set_n(6);
-    enumerate.recurse(' ', 0, 6);
+    enumerate.set_n(9);
+    enumerate.recurse(' ', 0, 9, 0);
 }
 
 // delta.push(HashMap::from([('a', 1)]));
