@@ -1,20 +1,23 @@
+//TODO test RMQ
+use std::cmp::PartialOrd;
+
 fn log_floor(x: u32) -> u32 {
     return u32::BITS - x.leading_zeros() - 1;
 }
-// maybe add lifetimes
-pub struct RMQ {
-    input: Vec<u32>,
+
+pub struct RMQ<T: PartialOrd + Copy> {
+    input: Vec<T>,
     n: usize, 
     k: usize,
-    block_min: Vec<u32>,
+    block_min: Vec<T>,
     block_min_idx: Vec<usize>,
     sparse_idx: Vec<Vec<usize>>,
     block_rmq: Vec<Vec<Vec<usize>>>,
     block_mask: Vec<u32>,
 }
 // TODO change other constuctors
-impl RMQ {
-    pub fn new(mut input: Vec<u32>) -> Self {
+impl<T: PartialOrd + Copy> RMQ<T> {
+    pub fn new(mut input: Vec<T>) -> Self {
         input_padding(&mut input);
         let n = input.len() as u32;
         let k = log_floor(n)/ 2;        
@@ -32,7 +35,7 @@ impl RMQ {
         new.build_sparse();
         new.fill_block_rmq();
         new.precompute_masks();
-        // println!("RMQ-DATA-STRUCTURE---------\ninput: {:?}\nsparse-idx: {:?}\n-------------------", new.input, new.sparse_idx);
+
         return new;
     }
     fn calc_block_min(&mut self) {
@@ -43,8 +46,8 @@ impl RMQ {
         }
     }
 
-    fn calc_min(&mut self, i: usize) -> (u32, usize) {
-        let mut current_min = u32::MAX;
+    fn calc_min(&mut self, i: usize) -> (T, usize) {
+        let mut current_min = self.input[i];
         let mut min_idx: usize = i;
         for j in i..i + self.k {
             match self.input.get(j) {
@@ -152,7 +155,7 @@ impl RMQ {
             let last = self.input[i-1];
             match self.input.get(i) {
                 Some(&x) => {
-                    if last > x {
+                    if last >= x {
                         mask -= 1 << (self.k-1-(i % self.k));
                     }
                 },
@@ -169,14 +172,14 @@ impl RMQ {
     }
 }
 
-fn input_padding(input: &mut Vec<u32>) {
+fn input_padding<T: Copy>(input: &mut Vec<T>) {
     while input.len() < 4 {
         let last = input[input.len() - 1];
-        input.push(last + 1);
+        input.push(last);
     }
 }
 
-fn min(a: u32, b: u32) -> u32 {
+fn min<T: std::cmp::PartialOrd>(a: T, b: T) -> T {
     match a < b {
         true => a,
         _ => b,

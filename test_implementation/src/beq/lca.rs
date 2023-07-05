@@ -5,7 +5,7 @@ use range_min::RMQ;
 pub struct LCA {
     idx_map: Vec<usize>,    // stores the index of the Node of the euler tour to the original node
     last_occ: Vec<usize>,   // stores the last occurrence of out inital node in the tour
-    rmq: RMQ,
+    rmq: RMQ<u32>,
 }
 
 impl LCA {
