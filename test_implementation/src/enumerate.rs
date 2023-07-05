@@ -39,7 +39,6 @@ impl Enumerate {
         if let Some((p,d)) = self.pmn.get(q,l) { //7
             println!("PathMaxNode({q},{l}) = ({p},{d})");
             let (b,w) = self.pmn.d_graph.lq[p][1];  //10
-            println!("w_{p}: {:?}", w);
             if Val(d as i64) + w >= Val(l as i64) {     //8
                 u.push_back(((q,l),q,0)); //9
                 let new_p = self.delta[p].get(&b).unwrap();
@@ -56,32 +55,31 @@ impl Enumerate {
         }
         while !u.is_empty() {   //16
             let ((s,j),q,h) = u.pop_front().unwrap();   //17
+            println!("popped (({s}, {j}), {q}, {h})");
             let (next_q, f) = self.pmn.get(s,j).unwrap(); //17
-            println!("PathMaxNode({s},{j}) = ({next_q},{f})");
-            match self.pmn.get(s,f) {   //18
-                Some((r,e)) => {
-                    let w_r = self.pmn.d_graph.get_weight(r);
-                    if f > 0 && Val(h as i64) + Val(e as i64) + Val(1) + w_r >= Val(l as i64) {
-                        u.push_back(((s,f),q,h));
-                    }
-                },
-                None => continue,
-            };
+            if let Some((r,e)) = self.pmn.get(s,f) {    // 18
+                let w_r = self.pmn.d_graph.get_weight(r);
+                // println!("h+e+1+w_r = {:?}",Val(h as i64) + Val(e as i64) + Val(1) + w_r);
+                if f > 0 && Val(h as i64) + Val(e as i64) + Val(1) + w_r >= Val(l as i64) {
+                    println!("pushed (({s}, {f}), {q}, {h})+");
+                    u.push_back(((s,f),q,h));
+                }
+            }
             let succ = self.pmn.d_graph.get_succesor(next_q).unwrap();
-            match self.pmn.get(succ, f) {   //19
-                Some((r,e)) => {
-                    let w_r = self.pmn.d_graph.get_weight(r);
-                    if j - f - 1 > 0 && Val(h as i64)+Val(f as i64)+Val(1)+Val(e as i64)+Val(1)+w_r >= Val(l as i64) {
-                        u.push_back(((succ, j - f - 1), q, h + f + 1));
-                    }
-                },
-                None => continue,
-            };
+            if let Some((r,e)) = self.pmn.get(succ, j - f - 1) {   //19 fixed
+                let w_r = self.pmn.d_graph.get_weight(r);
+                if j - f - 1 > 0 && Val(h as i64)+Val(f as i64)+Val(1)+Val(e as i64)+Val(1)+w_r >= Val(l as i64) {
+                    println!("pushed (({succ}, {}), {q}, {})-",j - f - 1, h + f + 1);
+                    u.push_back(((succ, j - f - 1), q, h + f + 1));
+                }
+            }
             let mut x = 2;  //22, 23        //third element
-            if ((s,f),q,h) != ((q,l),q,0) { //20
+            if ((s,j),q,h) != ((q,l),q,0) { //20
                 x = 1;  //21                //second element
             }
+            println!("x = {x}");
             while let Some((b,g)) = self.pmn.d_graph.lq[next_q].get(x) {    //TODO change this to for each loop
+                // println!("h+f+g+1 = {:?}", Val(h as i64) + Val(f as i64) + *g + Val(1));
                 if Val(h as i64) + Val(f as i64) + *g + Val(1) < Val(l as i64) {
                     break;
                 }
