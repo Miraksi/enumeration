@@ -23,7 +23,7 @@ impl PathMaxNode {
             CompType::Ind(_) => (best_node, d) = self.get_on_tree(s,l),
             CompType::Con(tree) => {
                 let depth = self.d_graph.get_depth(s);
-                if  depth > l {
+                if  depth >= l {
                     (best_node, d) = self.get_on_tree(s, l);
                 }
                 else {

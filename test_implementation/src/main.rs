@@ -29,7 +29,7 @@ fn main() {
     delta.push(HashMap::from([('a', 1), ('b', 4)]));
     delta.push(HashMap::from([('a', 2)]));
     delta.push(HashMap::from([('b', 1), ('a', 3)]));
-    delta.push(HashMap::from([]));
+    delta.push(HashMap::from([('a', 0)]));
     delta.push(HashMap::from([('b', 5)]));
     delta.push(HashMap::from([('b', 6)]));
     delta.push(HashMap::from([('a', 7),('b', 3)]));
@@ -41,8 +41,8 @@ fn main() {
     enumerate.pmn.show();
     println!("Lq: {:?}", enumerate.pmn.d_graph.lq);
     println!("-----------------------------------");
-    enumerate.set_n(7);
-    enumerate.recurse(' ', 0, 7);
+    enumerate.set_n(6);
+    enumerate.recurse(' ', 0, 6);
 }
 
 // delta.push(HashMap::from([('a', 1)]));
