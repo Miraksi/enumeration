@@ -3,6 +3,7 @@ mod default_graph;
 mod enumerate;
 mod level_ancestor;
 mod weight;
+mod my_math;
 
 // use beq::cartesian::connectivity::Connectivity;
 

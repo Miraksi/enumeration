@@ -2,39 +2,9 @@ extern crate rdxsort;
 use rdxsort::*;
 use std::collections::HashMap;
 use std::slice::Iter;
+use crate::my_math::{log_floor, max};
 
-fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
-    return u32::BITS - x.leading_zeros() - 1;
-}
 
-//maybe use enum to distinguish macro and micro nodes
-#[derive(Debug)]
-struct Node {
-    parent: usize,
-    children: Vec<usize>,
-    depth: usize,
-    ladder: usize,
-    ladder_idx: usize,
-    nearest_jump: usize,  //points to the closest jump node
-    micro_tree: usize,
-    micro_idx: usize,
-}
-impl Node {
-    fn new(parent: usize, children: Vec<usize>) -> Self {
-        Self{
-            parent: parent,
-            children: children,
-            depth: 0,
-            ladder: 0,
-            ladder_idx: 0,
-            nearest_jump: 0,
-            micro_tree: 0,
-            micro_idx: 0,
-        }
-    }
-}
-// TODO what kind of queries do I get?
-// we maybe need lifetimes here
 #[derive(Debug)]
 pub struct LevelAncestor {
     n: usize,
@@ -157,8 +127,7 @@ impl LevelAncestor {
         return (descendants, jump_node);
     }
 
-    // TODO test
-    fn compute_jumps(&mut self, base: usize) {  // Maybe this should return a Vector
+    fn compute_jumps(&mut self, base: usize) {  
         let mut jumps: Vec<usize> = vec![self.get_parent(base)];
         let mut current: usize = self.get_parent(base);
         let mut jump_size: usize = 1;
@@ -276,27 +245,32 @@ impl LevelAncestor {
         return self.micro_mapping[tree][self.micro_table[tree][idx][l]];
     }
 
-    // TODO check if #[inline] should be added
+    #[inline]
     fn ith_child(&self, node: usize, child_idx: usize) -> usize { // maybe add Result-Type
         return self.nodes[node].children[child_idx];
     }
 
+    #[inline]
     fn get_parent(&self, node: usize) -> usize {
         return self.nodes[node].parent;
     }
 
+    #[inline]
     fn get_children(&self, node: usize) -> Iter<usize> {
         return self.nodes[node].children.iter();
     }
 
+    #[inline]
     fn get_ladder(&self, node: usize) -> &Vec<usize> {
         return self.ladders.get(self.nodes[node].ladder).unwrap();
     } 
 
+    #[inline]
     fn get_ladder_idx(&self, node: usize) -> usize {
         return self.nodes[node].ladder_idx;
     }
     
+    #[inline]
     fn get_depth(&self, node: usize) -> usize {
         return self.nodes[node].depth;
     }
@@ -315,18 +289,13 @@ fn compute_node_list(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usiz
     return list;
 }
 
+#[inline]
 fn tree_padding(list: &mut Vec<Node>, root: usize) {
     while list.len() < 16 {
         list.push(Node::new(root, Vec::new()));
     }
 }
 
-fn max(a: usize, b: usize) -> usize { // TODO outsource
-    match a < b {
-        true => b,
-        false => a,
-    }
-}
 
 fn hash_to_graph(k: usize, mut hash: u32) -> Vec<Node> {
     let mut current: usize = 0;
@@ -360,4 +329,30 @@ fn brute_level_ancestor(graph: Vec<Node>) -> Vec<Vec<usize>> {
         table.push(tmp);
     }
     return table;
+}
+
+#[derive(Debug)]
+struct Node {
+    parent: usize,
+    children: Vec<usize>,
+    depth: usize,
+    ladder: usize,
+    ladder_idx: usize,
+    nearest_jump: usize,  //points to the closest jump node
+    micro_tree: usize,
+    micro_idx: usize,
+}
+impl Node {
+    fn new(parent: usize, children: Vec<usize>) -> Self {
+        Self{
+            parent: parent,
+            children: children,
+            depth: 0,
+            ladder: 0,
+            ladder_idx: 0,
+            nearest_jump: 0,
+            micro_tree: 0,
+            micro_idx: 0,
+        }
+    }
 }
