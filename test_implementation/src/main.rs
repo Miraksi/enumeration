@@ -23,6 +23,7 @@ mod my_math;
 
 use std::collections::HashMap;
 use enumerate::Enumerate;
+use std::time::{Duration, Instant};
 
 fn main() {
     let mut delta: Vec<HashMap<char, usize>> = Vec::new();
@@ -36,13 +37,18 @@ fn main() {
     delta.push(HashMap::from([('a', 7),('b', 3)]));
     delta.push(HashMap::from([('a', 8)]));
     delta.push(HashMap::from([('b', 8)]));
-
+    let start = Instant::now();
     let mut enumerate = Enumerate::new(delta);
-    println!("initialized");
+    let duration = start.elapsed();
+    println!("time needed for initialisation: {:?}", duration);
     enumerate.pmn.show();
     println!("-----------------------------------");
-    enumerate.set_n(9);
-    enumerate.recurse(' ', 0, 9, 0);
+    enumerate.set_n(65);
+    let start = Instant::now();
+    let mut count = 0;
+    enumerate.recurse(' ', 0, 65, 0, &mut count);
+    let duration = start.elapsed();
+    println!("time needed for enumerating {count} words: {:?}", duration);
 }
 
 // delta.push(HashMap::from([('a', 1)]));

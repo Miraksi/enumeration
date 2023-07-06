@@ -13,7 +13,6 @@ pub enum Weight {
 }
 impl Add for Weight {
     type Output = Self;
-    //TODO check if this is a fitting addidtion
     fn add(self, other: Self) -> Self {
         match (self, other) {
             (Val(x), Val(y)) => Weight::Val(x+y),
@@ -26,14 +25,12 @@ impl Add for Weight {
 }
 impl Sub for Weight {
     type Output = Self;
-    //TODO check if this is a fitting addidtion
     fn sub(self, other: Self) -> Self {
         return self + (-other);
     }
 }
 impl Neg for Weight {
     type Output = Self;
-    //TODO check if this is a fitting addidtion
     fn neg(self) -> Self {
         match self{
             Val(x) => Val(-x),

@@ -26,12 +26,13 @@ impl Enumerate {
         self.n = n;
     }
 
-    pub fn recurse(&mut self, a: char, q: usize, l: usize, indent: usize) {
+    pub fn recurse(&mut self, a: char, q: usize, l: usize, indent: usize, count: &mut usize) {
         // println!("called with a: {a}, q: {q}, l: {l}");
         self.stack_s.push((a,q,l)); //2
         //push stackframe of this call and top element of stack_s onto stack_c //3
         let ind: String = "\t".repeat(indent);
-        println!("{}Output: ({},{},{},{})",ind,self.n as i64 - l as i64 - 1,a,q,l);   //4
+        // println!("{}Output: ({},{},{},{})",ind,self.n as i64 - l as i64 - 1,a,q,l);   //4
+        *count += 1;
         if l == 0 {
             return; //5
         }
@@ -84,13 +85,13 @@ impl Enumerate {
                     break;
                 }
                 let branch = self.delta[next_q].get(b).unwrap();
-                self.recurse(*b, *branch, l - h - f - 1, indent + 1);
+                self.recurse(*b, *branch, l - h - f - 1, indent + 1, count);
                 // set the top element of S to the element pointed by the top element of C
                 x += 1;
             }
         }
         self.stack_s.pop();
-        self.recurse(last.0, last.1, last.2, indent + 1);
+        self.recurse(last.0, last.1, last.2, indent + 1, count);
         return;
     }
 
