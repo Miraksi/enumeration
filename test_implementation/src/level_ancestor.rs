@@ -1,6 +1,5 @@
 extern crate rdxsort;
 use rdxsort::*;
-use std::collections::HashMap;
 use std::slice::Iter;
 use crate::my_math::{log_floor, max};
 
@@ -14,14 +13,10 @@ pub struct LevelAncestor {
     ladders: Vec<Vec<usize>>,        // ladders are in reverse order
     leaf_depth: Vec<(usize, usize)>, // (depth of leaf, index of leaf)
     jump_nodes: Vec<usize>,         // stores all jump_nodes (leaves of the macrotree)
-    jump_points: HashMap<usize, Vec<usize>>,    // stores all the jumppoints for a jump node
-                                                // we are allowed to stor this in a HashMap, 
-                                                // since inserting will still work in O(n) 
-                                                // (n beeing the number of nodes)
+    jump_points: Vec<Option<Vec<usize>>>,    // stores all the jumppoints for a jump node
     micro_table: Vec<Vec<Vec<usize>>>,
     micro_hashes: Vec<u32>,
     micro_mapping: Vec<Vec<usize>>,     // maps the result of LA on hashes to the actual nodes
-                                            // TODO testing of mapping
 }
 
 impl LevelAncestor {
@@ -37,7 +32,7 @@ impl LevelAncestor {
             ladders: Vec::new(),
             leaf_depth: Vec::new(),
             jump_nodes: Vec::new(),
-            jump_points: HashMap::new(),
+            jump_points: vec![None; n],
             micro_table: Vec::new(),
             micro_hashes: Vec::new(),
             micro_mapping: Vec::new(),
@@ -147,7 +142,7 @@ impl LevelAncestor {
             jumps.push(current);
             jump_size *= 2;
         }
-        self.jump_points.insert(base, jumps);
+        self.jump_points[base] = Some(jumps);
     }
 
     fn compute_micro_hashes(&mut self) {
@@ -227,7 +222,7 @@ impl LevelAncestor {
         let node = &self.nodes[p];
         let mut d: i64 = self.get_depth(node.nearest_jump) as i64 - node.depth as i64;
         let jump: usize = log_floor(d as u32 + l as u32) as usize;
-        match self.jump_points.get(&node.nearest_jump) {
+        match &self.jump_points[node.nearest_jump] {
             Some(list) => {
                 let jumped_to = list[jump];
                 d = self.nodes[jumped_to].depth as i64 - node.depth as i64;
