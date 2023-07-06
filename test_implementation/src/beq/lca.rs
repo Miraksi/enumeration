@@ -5,12 +5,12 @@ use range_min::RMQ;
 pub struct LCA {
     idx_map: Vec<usize>,    // stores the index of the Node of the euler tour to the original node
     last_occ: Vec<usize>,   // stores the last occurrence of out inital node in the tour
-    rmq: RMQ<u32>,
+    rmq: RMQ<usize>,
 }
 
 impl LCA {
     pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
-        let mut tour: Vec<u32> = Vec::new();
+        let mut tour: Vec<usize> = Vec::new();
         let mut map: Vec<usize> = Vec::new();
         let mut last_occ: Vec<usize> = vec![0; parent.len()];
         if parent.len() == 0 {
@@ -33,13 +33,13 @@ impl LCA {
 }
 
 fn euler_dfs(
-    tour: &mut Vec<u32>, 
+    tour: &mut Vec<usize>, 
     map: &mut Vec<usize>, 
     last_occ: &mut Vec<usize>, 
     parent: &Vec<usize>, 
     children: &Vec<Vec<usize>>, 
     root: usize, 
-    height: u32) 
+    height: usize) 
     {
     last_occ[root] = tour.len();
     tour.push(height);
