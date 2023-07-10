@@ -89,12 +89,15 @@ impl Cluster {
 /// A data-structure that, given a tree, allows faster dynamic-connectivity queries.
 /// Meaning deletion of an edge (u,v) and checking whether two vertecies are still connected.
 ///
+/// # Complexity
 /// The preprocessing phase runs in O(n) time, where n is the the number of vertecies in the forest.
 /// Deletion runs in amortized O(1) and checking for connectivity runs in O(1) time.
 ///
+/// # Notes
 /// This version is still using HashMaps as it is more convenient and more space-efficient. Later
 /// versions might use Vectors instead, to achieve the theoretival lower bound.
 ///
+/// # Sources
 /// used 'S. Alstrup and M. Spork. Optimal on-line decremental connectivity in trees.' as reference
 pub struct Connectivity {
     pub root: usize,
@@ -452,7 +455,7 @@ pub fn normalize(nodes: &mut Vec<Node>, root: usize) -> HashMap<(usize,usize),(u
         for child in nodes[current].children.iter() {
             queue.push(*child);
         }
-        if nodes[current].children.len() <= 2 {     //change this to get binary trees
+        if nodes[current].children.len() <= 2 {
             continue;
         }
         let first_added = nodes.len();

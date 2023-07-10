@@ -5,7 +5,13 @@ use cartesian::{Node, cartesian_on_tree, cartesian_to_tree};
 use lca::LCA;
 use crate::weight::Weight;
 
-
+/// A data-structure for retrieving the minimal edge-value along a path from u to v through a tree.
+///
+/// # Complexity
+/// The preprocessing phase runs in O(n) time and queries can be answered in O(1) time.
+///
+/// # Sources
+/// used used 'E. D. Demaine, G. M. Landau, and O. Weimann. On cartesian trees and range minimum queries' as reference
 pub struct Bottleneck {
     pub c_tree: Vec<Node>,
     pub last_occ: Vec<usize>,

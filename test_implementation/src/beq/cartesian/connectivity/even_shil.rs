@@ -15,12 +15,15 @@ impl Node {
 /// A data-structure that, given a forest, allows dynamic-connectivity queries.
 /// Meaning deletion of an edge (u,v) and checking whether two vertecies are still connected.
 ///
+/// # Complexity
 /// The preprocessing phase runs in O(n) time, where n is the the number of vertecies in the forest.
 /// Deletion runs in O(log n) and checking for connectivity runs in O(1) time.
 ///
+/// # Note
 /// This version is still using HashSets as it is more convenient and in practice works just fine.
 /// Later versions will change that, to achieve the theoretical complexity
 ///
+/// # Sources
 /// used Wikipedia as reference: https://en.wikipedia.org/wiki/Dynamic_connectivity
 #[derive(Debug)]
 pub struct EvenShil {
