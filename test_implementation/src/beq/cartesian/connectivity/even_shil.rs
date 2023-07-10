@@ -24,7 +24,7 @@ impl Node {
 /// Later versions will change that, to achieve the theoretical complexity
 ///
 /// # Sources
-/// used Wikipedia as reference: https://en.wikipedia.org/wiki/Dynamic_connectivity
+/// used Wikipedia as reference: <https://en.wikipedia.org/wiki/Dynamic_connectivity>
 #[derive(Debug)]
 pub struct EvenShil {
     forest: Vec<Node>,

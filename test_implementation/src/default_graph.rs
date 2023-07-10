@@ -6,6 +6,7 @@ use longest_path::compute_longest_pairs;
 use crate::beq::{lca::LCA, cartesian::cartesian_on_list};
 use crate::weight::{Weight, Weight::*};
 
+/// Represents all possible default-component types: Independent trees, Connected trees and Cycles
 pub enum CompType {
     Ind(Tree),
     Con(Tree),
@@ -102,7 +103,6 @@ impl Cycle {
     }
 }
 
-// TODO I DONT TRUST THIS WEIGHING YET
 // weighs cycle like in Paper, but negates weights, to get range max and not range min
 fn weigh_cycle(nodes: &Vec<usize>, lq: &Vec<Vec<(char, Weight)>>) -> Vec<Weight> {
     let len = nodes.len();

@@ -8,7 +8,7 @@ use range_min::RMQ;
 /// Precomutation in O(n) and queries in O(1) time
 ///
 /// # Sources
-/// used https://cp-algorithms.com/graph/lca_farachcoltonbender.html as reference
+/// used <https://cp-algorithms.com/graph/lca_farachcoltonbender.html> as reference
 pub struct LCA {
     idx_map: Vec<usize>,    // stores the index of the Node of the euler tour to the original node
     last_occ: Vec<usize>,   // stores the last occurrence of out inital node in the tour

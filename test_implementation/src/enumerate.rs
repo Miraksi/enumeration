@@ -5,6 +5,15 @@ use std::collections::HashMap;
 use crate::weight::Weight::*;
 use std::collections::VecDeque;
 
+/// The main data-structure for the enumeration of prefix closed regular languages,
+/// given by the delta of an atomaton accepting it.
+///
+/// # Complexity 
+/// preprocessing runs in linear time, and the enumeration all words of size n
+/// runs also in linear time with constant delay.
+///
+/// # Sources 
+/// Main algorithm of 'D. Adamson, F. Manea and P. Gawrychowski. Enumerating Prefix-Closed Regular Languages with Constant Delay'
 pub struct Enumerate {
     delta: Vec<HashMap<char, usize>>,
     pub pmn: PathMaxNode,

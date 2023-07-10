@@ -11,7 +11,7 @@ use std::cmp::PartialOrd;
 /// cartiesian trees on arrays to get a general RMQ implementation
 ///
 /// # Sources
-/// used https://cp-algorithms.com/graph/lca_farachcoltonbender.html#implementation as reference
+/// used <https://cp-algorithms.com/graph/lca_farachcoltonbender.html#implementation> as reference
 pub struct RMQ<T: PartialOrd + Copy> {
     input: Vec<T>,
     n: usize, 

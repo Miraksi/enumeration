@@ -103,7 +103,7 @@ pub fn cartesian_to_tree(c_tree: &Vec<Node>) -> (Vec<usize>, Vec<Vec<usize>>) {
 
 /// Builds a cartesian tree on top of an array, while keeping the indicies, so there is no mapping needed.
 ///
-/// used cp-algorithms as reference: https://cp-algorithms.com/graph/rmq_linear.html#construction-of-a-cartesian-tree
+/// used cp-algorithms as reference: <https://cp-algorithms.com/graph/rmq_linear.html#construction-of-a-cartesian-tree>
 pub fn cartesian_on_list<T: PartialOrd>(list: &Vec<T>) -> (usize, Vec<usize>, Vec<Vec<usize>>) {
     let mut stack: Vec<usize> = Vec::new();
     let mut parent: Vec<usize> = vec![list.len(); list.len()];
