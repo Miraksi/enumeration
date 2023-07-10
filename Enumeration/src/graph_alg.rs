@@ -4,3 +4,4 @@ pub mod beq;
 pub mod tarjan;
 pub mod lca;
 pub mod cartesian;
+pub mod toposort;

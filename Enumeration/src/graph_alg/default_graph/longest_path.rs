@@ -1,4 +1,4 @@
-use crate::graph_alg::tarjan::Tarjan;
+use crate::graph_alg::{tarjan::Tarjan, toposort::Toposort};
 use rdxsort::*; //TODO test if its actually fast
 use std::collections::HashMap;
 use crate::weight::{Weight, Weight::*};
@@ -80,10 +80,10 @@ fn compute_pi(edges: &Vec<Vec<usize>>) -> Vec<u32> {
     }
 
     let acyc_edges = compute_acyclic_graph(edges, &color);
-    let topsort = Topsort::new(&acyc_edges).reverse_topsort();
+    let toposort = Toposort::new(&acyc_edges).reverse_toposort();
     let rev_edges = reverse_edges(&acyc_edges);
 
-    for u in topsort {
+    for u in toposort {
         if color[u] == Color::WHITE {
             for v in rev_edges[u].iter() {
                 pi[*v] = match pi[u] {
@@ -122,42 +122,6 @@ fn compute_acyclic_graph(edges: &Vec<Vec<usize>>, color: &Vec<Color>) -> Vec<Vec
     return acyc_edges;
 }
 
-//Topsort from teamreferences
-struct Topsort<'a> {
-    edges: &'a Vec<Vec<usize>>,
-    used: Vec<bool>,
-    topsort: Vec<usize>,
-}
-
-impl <'a> Topsort<'a> {
-    fn new(edges: &'a Vec<Vec<usize>>) -> Self {
-        let n = edges.len();
-        Self {
-            edges: edges,
-            used: vec![false;n],
-            topsort: Vec::new(),
-        }
-    }
-    fn reverse_topsort(&mut self) -> Vec<usize> {    
-        let n = self.edges.len();
-        for i in 0..n {
-            if !self.used[i] {
-                self.dfs_topsort(i);
-            }
-        }
-        return self.topsort.clone();
-    }
-    fn dfs_topsort(&mut self, v: usize) {
-        self.used[v] = true;
-        for u in self.edges[v].iter() {
-            if !self.used[*u] {
-                self.dfs_topsort(*u);
-            }
-        }
-        self.topsort.push(v);
-    }
-    
-}
 
 fn max(a: u32, b: u32) -> u32 {
     match a < b {
