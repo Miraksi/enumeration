@@ -1,9 +1,9 @@
 mod longest_path;
 
 use std::collections::HashMap;
-use crate::{level_ancestor::LevelAncestor, beq::Bottleneck};
+use crate::graph_alg::{level_ancestor::LevelAncestor, beq::Bottleneck};
 use longest_path::compute_longest_pairs;
-use crate::beq::{lca::LCA, cartesian::cartesian_on_list};
+use crate::graph_alg::{lca::LCA, cartesian::cartesian_on_list};
 use crate::weight::{Weight, Weight::*};
 
 /// Represents all possible default-component types: Independent trees, Connected trees and Cycles

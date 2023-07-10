@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::default_graph::{DefaultGraph, CompType};
+use crate::graph_alg::default_graph::{DefaultGraph, CompType};
 use crate::weight::Weight;
 
 /// A data-structure for answering PathMaxNode queries as described in Lemma 4 of our main paper.

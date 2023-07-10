@@ -1,9 +1,7 @@
-mod beq;
-mod default_graph;
 mod enumerate;
-mod level_ancestor;
 mod weight;
 mod my_math;
+pub mod graph_alg;
 
 // use beq::cartesian::connectivity::Connectivity;
 
@@ -46,7 +44,7 @@ fn main() {
     enumerate.set_n(65);
     let start = Instant::now();
     let mut count = 0;
-    enumerate.recurse(' ', 0, 65, 0, &mut count);
+    enumerate.recurse(' ', 0, 40, 0, &mut count);
     let duration = start.elapsed();
     println!("time needed for enumerating {count} words: {:?}", duration);
 }

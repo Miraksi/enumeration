@@ -1,9 +1,7 @@
-use tarjan::Tarjan;
+use crate::graph_alg::tarjan::Tarjan;
 use rdxsort::*; //TODO test if its actually fast
 use std::collections::HashMap;
 use crate::weight::{Weight, Weight::*};
-
-mod tarjan;
 
 
 const INFTY: u32 = 4294967295;

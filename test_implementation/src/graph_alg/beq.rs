@@ -1,8 +1,5 @@
-pub mod cartesian;
-pub mod lca;
-
-use cartesian::{Node, cartesian_on_tree, cartesian_to_tree};
-use lca::LCA;
+use crate::graph_alg::cartesian::{Node, cartesian_on_tree, cartesian_to_tree};
+use crate::graph_alg::lca::LCA;
 use crate::weight::Weight;
 
 /// A data-structure for retrieving the minimal edge-value along a path from u to v through a tree.
