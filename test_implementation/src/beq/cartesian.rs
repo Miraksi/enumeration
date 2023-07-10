@@ -2,13 +2,14 @@ mod connectivity;
 
 use connectivity::{Connectivity, Side};
 use crate::weight::{Weight,w_rdxsort};
+use crate::my_math::max;
 
 #[derive(Clone,Debug)]
 pub struct Node {
     parent: usize,
     left: Option<usize>,
     right: Option<usize>,
-    pub weight: Weight,  //TODO Check if weight is necessary
+    pub weight: Weight,
     pub edge: (usize, usize),
 }
 impl Node {
@@ -23,7 +24,10 @@ impl Node {
     }
 }
 
-//TODO refactor method to be smaller
+/// Builds a cartesian tree on top of an edge-weighed tree. 
+///
+/// Complexity in O(n)
+/// used 'E. D. Demaine, G. M. Landau, and O. Weimann. On cartesian trees and range minimum queries' as reference
 pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<Vec<Weight>>, root: usize) -> (Vec<Node>, Vec<usize>) {
     let mut con = Connectivity::new(parent, children, root);
     let mut c_tree: Vec<Node> = Vec::new();
@@ -80,13 +84,7 @@ fn sorted_edge_list(children: &Vec<Vec<usize>>, weights: &Vec<Vec<Weight>>) -> V
     return w_rdxsort(edge_lst);
 }
 
-fn max(a: usize, b: usize) -> usize {
-    if a < b {
-        return b;
-    }
-    return a; 
-}
-
+/// transfomrs a cartiesian tree, using Node struct, to Tree with parent and children Vec
 pub fn cartesian_to_tree(c_tree: &Vec<Node>) -> (Vec<usize>, Vec<Vec<usize>>) {
     let mut parent: Vec<usize> = vec![0; c_tree.len()];
     let mut children: Vec<Vec<usize>> = vec![Vec::new(); c_tree.len()];
@@ -103,8 +101,9 @@ pub fn cartesian_to_tree(c_tree: &Vec<Node>) -> (Vec<usize>, Vec<Vec<usize>>) {
     return (parent, children);
 }
 
-// taken from https://cp-algorithms.com/graph/rmq_linear.html#construction-of-a-cartesian-tree
-// does keep the indicies, so no mapping needed
+/// Builds a cartesian tree on top of an array, while keeping the indicies, so there is no mapping needed.
+///
+/// used cp-algorithms as reference: https://cp-algorithms.com/graph/rmq_linear.html#construction-of-a-cartesian-tree
 pub fn cartesian_on_list<T: PartialOrd>(list: &Vec<T>) -> (usize, Vec<usize>, Vec<Vec<usize>>) {
     let mut stack: Vec<usize> = Vec::new();
     let mut parent: Vec<usize> = vec![list.len(); list.len()];
