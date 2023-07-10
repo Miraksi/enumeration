@@ -6,6 +6,7 @@ use std::cmp::{PartialOrd,Ordering};
 use Weight::*;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+/// Data-type to handle lengths of longest pahts along a graph. Since this can be infinit, Inf and NInf have to be added. 
 pub enum Weight {
     Val(i64),
     Inf,

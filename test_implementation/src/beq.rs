@@ -11,7 +11,7 @@ use crate::weight::Weight;
 /// The preprocessing phase runs in O(n) time and queries can be answered in O(1) time.
 ///
 /// # Sources
-/// used used 'E. D. Demaine, G. M. Landau, and O. Weimann. On cartesian trees and range minimum queries' as reference
+/// used 'E. D. Demaine, G. M. Landau, and O. Weimann. On cartesian trees and range minimum queries' as reference
 pub struct Bottleneck {
     pub c_tree: Vec<Node>,
     pub last_occ: Vec<usize>,

@@ -5,6 +5,17 @@ use crate::my_math::{log_floor, max};
 
 
 #[derive(Debug)]
+/// A data-structure for answering level-ancestor queries.
+///
+/// # Complexity
+/// The preprocessing phase needs O(n) time and queries can be answered in O(1) time.
+///
+/// # Notes
+/// For microtrees one can use better performing preprocessing algorithms. This will not change the overall
+/// complexity and therefore isn't done here.
+///
+/// # Sorces
+/// used 'M. A. Bender and M. Farach-Colton. The level ancestor problem simplified.' as reference
 pub struct LevelAncestor {
     n: usize,
     k: usize,                        // k = (log n) / 4
