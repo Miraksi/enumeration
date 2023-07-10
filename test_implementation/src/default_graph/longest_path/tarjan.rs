@@ -1,3 +1,10 @@
+/// A data-structure for executing tarjan's strongly connected components algorithm.
+///
+/// # Complexity
+/// Runs in O(|V| + |E|) time
+///
+/// # Sources
+/// used https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm as reference
 pub struct Tarjan<'a> {
     scc: Vec<Vec<usize>>,
     maxdfs: u32,

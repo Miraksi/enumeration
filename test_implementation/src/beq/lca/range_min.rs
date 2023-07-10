@@ -1,10 +1,17 @@
-//TODO test RMQ
+use crate::my_math::log_floor;
 use std::cmp::PartialOrd;
 
-fn log_floor(x: u32) -> u32 {
-    return u32::BITS - x.leading_zeros() - 1;
-}
-
+/// A data-structure for answering +-1 range minimum queries on arrays
+///
+/// # Complexity
+/// Precomputation in O(n) and queries in O(1) time
+///
+/// # Notes
+/// This is NOT the general RMQ on arrays but 'just' the +-1 RMQ, which is used in combination with LCA and
+/// cartiesian trees on arrays to get a general RMQ implementation
+///
+/// # Sources
+/// used https://cp-algorithms.com/graph/lca_farachcoltonbender.html#implementation as reference
 pub struct RMQ<T: PartialOrd + Copy> {
     input: Vec<T>,
     n: usize, 
@@ -15,7 +22,7 @@ pub struct RMQ<T: PartialOrd + Copy> {
     block_rmq: Vec<Vec<Vec<usize>>>,
     block_mask: Vec<u32>,
 }
-// TODO change other constuctors
+
 impl<T: PartialOrd + Copy> RMQ<T> {
     pub fn new(mut input: Vec<T>) -> Self {
         input_padding(&mut input);
@@ -61,7 +68,6 @@ impl<T: PartialOrd + Copy> RMQ<T> {
         return (current_min, min_idx);
     }
 
-    //TODO check for correctness
     fn build_sparse(&mut self) {
         for x in self.block_min_idx.iter() {
             self.sparse_idx[0].push(*x);

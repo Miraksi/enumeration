@@ -14,6 +14,16 @@ enum Color {
     RED,
 }
 
+/// Builds the Lq data-structure from Lemma 2 of our main paper.
+/// This stores for every state q a sorted list of tuple (a,l), where a is the character with which we
+/// transition from q to another state q', and l is the length of the longest path from q with its first 
+/// transition beeing to q'.
+///
+/// # Complexity
+/// O(|V| + |E|) instead of O(|V| * sigma) since we use a HashMap as input
+///
+/// # Sources
+/// Lemma 2 of 'D. Adamson, F. Manea and P. Gawrychowski. Enumerating Prefix-Closed Regular Languages with Constant Delay'
 pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char,Weight)>> { //Lq
     let edges = compute_edge_list(&delta);
     let pi = compute_pi(&edges);
