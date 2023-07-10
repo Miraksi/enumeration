@@ -19,7 +19,7 @@ impl Node {
 /// Deletion runs in O(log n) and checking for connectivity runs in O(1) time.
 ///
 /// This version is still using HashSets as it is more convenient and in practice works just fine.
-/// Later Versions will change that, to achieve the theoretical complexity
+/// Later versions will change that, to achieve the theoretical complexity
 ///
 /// used Wikipedia as reference: https://en.wikipedia.org/wiki/Dynamic_connectivity
 #[derive(Debug)]

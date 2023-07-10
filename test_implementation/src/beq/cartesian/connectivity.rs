@@ -1,15 +1,12 @@
 use std::slice::Iter;
 use std::collections::HashMap;
+use crate::my_math::log_floor;
 
 use even_shil::EvenShil;
 mod even_shil;
-// TODO CLEAN THE COOODDEEEE
 
-fn log_floor(x: u32) -> u32 {   // TODO outsource this code into a module
-    return u32::BITS - x.leading_zeros() - 1;
-}
 
-#[derive(Debug, PartialEq, Eq, Hash)]       //TODO check, if Hash needs to be derived
+#[derive(Debug, PartialEq, Eq, Hash)]
 enum CompID {
     Macro(usize),
     Micro(usize, usize)
@@ -50,7 +47,6 @@ impl Node {
     }
 }
 
-//TODO export into its own module
 #[derive(Debug)]
 struct LinkedListSet {
     sets: Vec<usize>,
@@ -90,7 +86,16 @@ impl Cluster {
         }
     }
 }
-
+/// A data-structure that, given a tree, allows faster dynamic-connectivity queries.
+/// Meaning deletion of an edge (u,v) and checking whether two vertecies are still connected.
+///
+/// The preprocessing phase runs in O(n) time, where n is the the number of vertecies in the forest.
+/// Deletion runs in amortized O(1) and checking for connectivity runs in O(1) time.
+///
+/// This version is still using HashMaps as it is more convenient and more space-efficient. Later
+/// versions might use Vectors instead, to achieve the theoretival lower bound.
+///
+/// used 'S. Alstrup and M. Spork. Optimal on-line decremental connectivity in trees.' as reference
 pub struct Connectivity {
     pub root: usize,
     pub nodes: Vec<Node>,
