@@ -118,7 +118,14 @@ fn weigh_cycle(nodes: &Vec<usize>, lq: &Vec<Vec<(char, Weight)>>) -> Vec<Weight>
     return weights;
 }
 
-
+/// Builds the default graph for a given graph and stores all relevant data-structures 
+/// for the enumeration algorithm.
+///
+/// # Complexity
+/// Needs linear time to construct
+///
+/// # Sources
+/// Lemma 2,3 of 'D. Adamson, F. Manea and P. Gawrychowski. Enumerating Prefix-Closed Regular Languages with Constant Delay'
 pub struct DefaultGraph {
     pub lq: Vec<Vec<(char,Weight)>>,
     pub components: Vec<CompType>,

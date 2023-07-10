@@ -2,6 +2,13 @@ use std::collections::HashMap;
 use crate::default_graph::{DefaultGraph, CompType};
 use crate::weight::Weight;
 
+/// A data-structure for answering PathMaxNode queries as described in Lemma 4 of our main paper.
+///
+/// # Complexity
+/// queries can be answered in O(1) time
+///
+/// # Sources
+/// Lemma 4 of 'D. Adamson, F. Manea and P. Gawrychowski. Enumerating Prefix-Closed Regular Languages with Constant Delay'
 pub struct PathMaxNode {
     pub d_graph: DefaultGraph,
 }
