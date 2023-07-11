@@ -14,4 +14,4 @@ I've also tried to get as close to the theoretical construction and complexity a
 - Even and Shiloach’s algorithm for decremental connectivity
 
 ## Documentation
-To get the html just run cargo ´´´doc´´´
+To get the html just run ´´´cargo doc´´´
