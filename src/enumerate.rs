@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use crate::weight::Weight::*;
 use std::collections::VecDeque;
 
+use std::time::Instant;
+
 /// The main data-structure for the enumeration of prefix closed regular languages,
 /// given by the delta of an atomaton accepting it.
 ///
@@ -35,11 +37,13 @@ impl Enumerate {
         self.n = n;
     }
 
-    pub fn recurse(&mut self, a: char, q: usize, l: usize, indent: usize, count: &mut usize) {
+    pub fn recurse(&mut self, a: char, q: usize, l: usize, indent: usize, count: &mut usize, /*timing: &mut Instant*/) {
         // println!("called with a: {a}, q: {q}, l: {l}");
         self.stack_s.push((a,q,l)); //2
         //push stackframe of this call and top element of stack_s onto stack_c //3
         let ind: String = "\t".repeat(indent);
+        //println!("elapsed time: {:?}", timing.elapsed());
+        //*timing = Instant::now();
         // println!("{}Output: ({},{},{},{})",ind,self.n as i64 - l as i64 - 1,a,q,l);   //4
         *count += 1;
         if l == 0 {
@@ -94,13 +98,13 @@ impl Enumerate {
                     break;
                 }
                 let branch = self.delta[next_q].get(b).unwrap();
-                self.recurse(*b, *branch, l - h - f - 1, indent + 1, count);
+                self.recurse(*b, *branch, l - h - f - 1, indent + 1, count, /*timing*/);
                 // set the top element of S to the element pointed by the top element of C
                 x += 1;
             }
         }
         self.stack_s.pop();
-        self.recurse(last.0, last.1, last.2, indent + 1, count);
+        self.recurse(last.0, last.1, last.2, indent + 1, count, /*timing*/);
         return;
     }
 
