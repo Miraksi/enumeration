@@ -302,19 +302,31 @@ impl DefaultGraph {
 }
 
 //TODO Testing
-fn compute_default_graph(delta: &Vec<HashMap<char, usize>>) -> (Vec<Vec<(char,Weight)>>, Vec<Vec<usize>>) {
+fn compute_default_graph(delta: &Vec<HashMap<char, usize>>) -> (Vec<Vec<(char, Weight)>>, Vec<Vec<usize>>) {
     let lq = compute_longest_pairs(delta);
     let mut default_edges: Vec<Vec<usize>> = vec![Vec::new();delta.len()];
     for q in 0..lq.len() {
         match lq[q].get(0) {
-            Some((a, _l)) => {
-                let tmp: usize = *(delta[q].get(a).unwrap());
-                default_edges[q].push(tmp);
+            Some((_l, q_next)) => {
+                default_edges[q].push(*q_next);
             },
             None => continue,
         };
     }
-    return (lq, default_edges);
+    return (condense_lq(lq), default_edges);    //condensation needed, since lq currently stores the q' of the transition delta(a,q) -> q'
+}
+
+//TODO needs to be rewritten
+fn condense_lq(lq: Vec<Vec<(Weight, usize)>>) -> Vec<Vec<(char, Weight)>> {
+    let mut condensed_lq: Vec<Vec<(char, Weight)>> = Vec::new();
+    for row in lq.iter() {
+        let mut tmp: Vec<(char, Weight)> = Vec::new();
+        for (w, _q) in row.iter() {
+            tmp.push(('a',*w));         // temporary change for testing
+        }
+        condensed_lq.push(tmp);
+    }
+    return condensed_lq;
 }
 
 
