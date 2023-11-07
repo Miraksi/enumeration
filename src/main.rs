@@ -24,13 +24,13 @@ use enumerate::Enumerate;
 use std::time::{Duration, Instant};
 
 fn main() {
-    let mut delta: Vec<HashMap<char, usize>> = Vec::new();
+    let mut delta: Vec<Vec<(char, usize)>> = Vec::new();
 
-    delta.push(HashMap::from([('a', 1), ('b', 2), ('c', 3), ('d', 4)]));
-    delta.push(HashMap::from([('a', 2), ('b', 3), ('c', 4), ('d', 0)]));
-    delta.push(HashMap::from([('a', 3), ('b', 4), ('c', 0), ('d', 1)]));
-    delta.push(HashMap::from([('a', 4), ('b', 0), ('c', 1), ('d', 2)]));   
-    delta.push(HashMap::from([('a', 0), ('b', 1), ('c', 2), ('d', 3)])); 
+    delta.push(vec![('a', 1), ('b', 2), ('c', 3), ('d', 4)]);
+    delta.push(vec![('a', 2), ('b', 3), ('c', 4), ('d', 0)]);
+    delta.push(vec![('a', 3), ('b', 4), ('c', 0), ('d', 1)]);
+    delta.push(vec![('a', 4), ('b', 0), ('c', 1), ('d', 2)]);   
+    delta.push(vec![('a', 0), ('b', 1), ('c', 2), ('d', 3)]); 
 
     let start = Instant::now();
     let mut enumerate = Enumerate::new(delta);

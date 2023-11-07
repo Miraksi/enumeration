@@ -1,6 +1,5 @@
 use crate::graph_alg::{tarjan::Tarjan, toposort::Toposort};
 use rdxsort::*; //TODO test if its actually fast
-use std::collections::HashMap;
 use crate::weight::{Weight, Weight::*};
 
 
@@ -18,11 +17,11 @@ enum Color {
 /// transition beeing to q'.
 ///
 /// # Complexity
-/// O(|V| + |E|) instead of O(|V| * sigma) since we use a HashMap as input
+/// O(|V| + |E|) instead of O(|V| * sigma) (does this still hold after the changes?)
 ///
 /// # Sources
 /// Lemma 2 of 'D. Adamson, F. Manea and P. Gawrychowski. Enumerating Prefix-Closed Regular Languages with Constant Delay'
-pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char, Weight, usize)>> { //Lq
+pub fn compute_longest_pairs(delta: &Vec<Vec<(char, usize)>>) -> Vec<Vec<(char, Weight, usize)>> { //Lq
     let edges = compute_edge_list(&delta);
     let pi = compute_pi(&edges);
     let mut tuple_list: Vec<(u32, char, (usize, usize))> = Vec::new(); // (pi(q'), a, (q, q')) instead of (q, pi(q'), a) to avoid having to use hashmaps. the tupel 
@@ -43,7 +42,7 @@ pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char
     return longest_pairs;
 }
 
-fn compute_edge_list(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<usize>> {
+fn compute_edge_list(delta: &Vec<Vec<(char, usize)>>) -> Vec<Vec<usize>> {
     let mut edges: Vec<Vec<usize>> = vec![Vec::new(); delta.len()];
     for p in 0..delta.len() {
         for (_a, q) in delta[p].iter() {

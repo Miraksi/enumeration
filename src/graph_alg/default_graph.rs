@@ -1,6 +1,5 @@
 mod longest_path;
 
-use std::collections::HashMap;
 use crate::graph_alg::{level_ancestor::LevelAncestor, beq::Bottleneck};
 use longest_path::compute_longest_pairs;
 use crate::graph_alg::{lca::LCA, cartesian::cartesian_on_list};
@@ -22,7 +21,7 @@ pub struct Tree {
     pub mapping: Vec<usize>,    //map for internal to external;
 }
 impl Tree {
-    fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>, lq: &Vec<Vec<(char, Weight)>>) -> Self {
+    fn new(edge_list: Vec<Vec<usize>>, mapping: Vec<usize>, lq: &Vec<Vec<(char, Weight, usize)>>) -> Self {
         let mut depth: Vec<usize> = vec![0; edge_list.len()];
         let parent = compute_parents(&edge_list);
         calc_depth(&edge_list, &mut depth, 0, 0);
@@ -39,7 +38,7 @@ impl Tree {
         return new;
     }  
 }
-fn weigh_tree(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, Weight)>>) -> Vec<Weight> {
+fn weigh_tree(depth: &Vec<usize>, mapping: &Vec<usize>, lq: &Vec<Vec<(char, Weight, usize)>>) -> Vec<Weight> {
     let mut weight: Vec<Weight> = vec![NInf; mapping.len()];
     for i in 0..mapping.len() {    // for the root of independent trees, there is no w_q since 
         if lq[mapping[i]].len() >= 2{
@@ -91,7 +90,7 @@ pub struct Cycle {
     pub lca: LCA,   // rmq over length 2m
 }
 impl Cycle {
-    fn new(nodes: Vec<usize>, lq: &Vec<Vec<(char, Weight)>>) -> Self {
+    fn new(nodes: Vec<usize>, lq: &Vec<Vec<(char, Weight, usize)>>) -> Self {
         let weights = weigh_cycle(&nodes, lq);
         let (c_root, c_parent, c_children) = cartesian_on_list(&weights);
         let new = Self {
@@ -104,11 +103,11 @@ impl Cycle {
 }
 
 // weighs cycle like in Paper, but negates weights, to get range max and not range min
-fn weigh_cycle(nodes: &Vec<usize>, lq: &Vec<Vec<(char, Weight)>>) -> Vec<Weight> {
+fn weigh_cycle(nodes: &Vec<usize>, lq: &Vec<Vec<(char, Weight, usize)>>) -> Vec<Weight> {
     let len = nodes.len();
     let mut weights: Vec<Weight> = Vec::new();
     for i in 0..2*len {
-        if let Some((_,x)) = lq[nodes[i % len]].get(1) {
+        if let Some((_,x,_)) = lq[nodes[i % len]].get(1) {
             weights.push(Val(i as i64) - *x ); // change lq to use Weight as well
         }
         else {
@@ -127,7 +126,7 @@ fn weigh_cycle(nodes: &Vec<usize>, lq: &Vec<Vec<(char, Weight)>>) -> Vec<Weight>
 /// # Sources
 /// Lemma 2,3 of 'D. Adamson, F. Manea and P. Gawrychowski. Enumerating Prefix-Closed Regular Languages with Constant Delay'
 pub struct DefaultGraph {
-    pub lq: Vec<Vec<(char,Weight)>>,
+    pub lq: Vec<Vec<(char,Weight,usize)>>, //now also holds the next state q' of the transition
     pub components: Vec<CompType>,
     pub default_edges: Vec<Vec<usize>>,
     pub rev_default_edges: Vec<Vec<usize>>,
@@ -135,7 +134,7 @@ pub struct DefaultGraph {
     pub mapping: Vec<Option<usize>>,    //maps the node of the graph to the index in the component
 }
 impl DefaultGraph {
-    pub fn new(delta: &Vec<HashMap<char, usize>>) -> Self {
+    pub fn new(delta: &Vec<Vec<(char, usize)>>) -> Self {
         let (lq, default_edges) = compute_default_graph(delta);
         let mut new = Self{
             lq: lq,
@@ -302,7 +301,7 @@ impl DefaultGraph {
 }
 
 //TODO Testing
-fn compute_default_graph(delta: &Vec<HashMap<char, usize>>) -> (Vec<Vec<(char, Weight)>>, Vec<Vec<usize>>) {
+fn compute_default_graph(delta: &Vec<Vec<(char, usize)>>) -> (Vec<Vec<(char, Weight, usize)>>, Vec<Vec<usize>>) {
     let lq = compute_longest_pairs(delta);
     let mut default_edges: Vec<Vec<usize>> = vec![Vec::new();delta.len()];
     for q in 0..lq.len() {
@@ -313,20 +312,7 @@ fn compute_default_graph(delta: &Vec<HashMap<char, usize>>) -> (Vec<Vec<(char, W
             None => continue,
         };
     }
-    return (condense_lq(lq), default_edges);    //condensation needed, since lq currently stores the q' of the transition delta(a,q) -> q'
-}
-
-//TODO needs to be rewritten
-fn condense_lq(lq: Vec<Vec<(char, Weight, usize)>>) -> Vec<Vec<(char, Weight)>> {
-    let mut condensed_lq: Vec<Vec<(char, Weight)>> = Vec::new();
-    for row in lq.iter() {
-        let mut tmp: Vec<(char, Weight)> = Vec::new();
-        for (a, w, _q) in row.iter() {
-            tmp.push((*a ,*w));         // temporary change for testing
-        }
-        condensed_lq.push(tmp);
-    }
-    return condensed_lq;
+    return (lq, default_edges);
 }
 
 
