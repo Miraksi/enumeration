@@ -22,21 +22,21 @@ enum Color {
 ///
 /// # Sources
 /// Lemma 2 of 'D. Adamson, F. Manea and P. Gawrychowski. Enumerating Prefix-Closed Regular Languages with Constant Delay'
-pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(Weight, usize)>> { //Lq
+pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char, Weight, usize)>> { //Lq
     let edges = compute_edge_list(&delta);
     let pi = compute_pi(&edges);
-    let mut tuple_list: Vec<(u32, usize, usize)> = Vec::new(); // (pi(q'), q, q') instead of (q, pi(q'), a) to avoid having to use hashmaps
+    let mut tuple_list: Vec<(u32, char, (usize, usize))> = Vec::new(); // (pi(q'), a, (q, q')) instead of (q, pi(q'), a) to avoid having to use hashmaps. the tupel 
     for q in 0..delta.len() {
-        for (_a, q_next) in delta[q].iter() {
-            tuple_list.push((pi[*q_next], q, *q_next));
+        for (a, q_next) in delta[q].iter() {
+            tuple_list.push((pi[*q_next], *a, (q, *q_next)));
         }
     }
     tuple_list.rdxsort();
-    let mut longest_pairs: Vec<Vec<(Weight, usize)>> = vec![Vec::new(); delta.len()];
-    for (length, q, q_next) in tuple_list.iter().rev() {
+    let mut longest_pairs: Vec<Vec<(char, Weight, usize)>> = vec![Vec::new(); delta.len()];
+    for (length, a, (q, q_next)) in tuple_list.iter().rev() {
         let tmp = match *length {
-            INFTY => (Inf, *q_next),
-            _ => (Val((length + 1) as i64), *q_next),
+            INFTY => (*a, Inf, *q_next),
+            _ => (*a, Val((length + 1) as i64), *q_next),
         };
         longest_pairs[*q].push(tmp);
     }

@@ -307,7 +307,7 @@ fn compute_default_graph(delta: &Vec<HashMap<char, usize>>) -> (Vec<Vec<(char, W
     let mut default_edges: Vec<Vec<usize>> = vec![Vec::new();delta.len()];
     for q in 0..lq.len() {
         match lq[q].get(0) {
-            Some((_l, q_next)) => {
+            Some((_a, _l, q_next)) => {
                 default_edges[q].push(*q_next);
             },
             None => continue,
@@ -317,12 +317,12 @@ fn compute_default_graph(delta: &Vec<HashMap<char, usize>>) -> (Vec<Vec<(char, W
 }
 
 //TODO needs to be rewritten
-fn condense_lq(lq: Vec<Vec<(Weight, usize)>>) -> Vec<Vec<(char, Weight)>> {
+fn condense_lq(lq: Vec<Vec<(char, Weight, usize)>>) -> Vec<Vec<(char, Weight)>> {
     let mut condensed_lq: Vec<Vec<(char, Weight)>> = Vec::new();
     for row in lq.iter() {
         let mut tmp: Vec<(char, Weight)> = Vec::new();
-        for (w, _q) in row.iter() {
-            tmp.push(('a',*w));         // temporary change for testing
+        for (a, w, _q) in row.iter() {
+            tmp.push((*a ,*w));         // temporary change for testing
         }
         condensed_lq.push(tmp);
     }
