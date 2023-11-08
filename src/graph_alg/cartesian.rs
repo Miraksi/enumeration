@@ -35,7 +35,7 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
     let mut last_occ: Vec<usize> = vec![0; parent.len()];
     
     let edge_lst = sorted_edge_list(children, weights);
-    for (weight,(u,v)) in edge_lst.iter() {
+    for (weight,(u,v,_idx)) in edge_lst.iter() {
         let len = c_tree.len();
         let mut tmp = Node::new(len, None, None, *weight, (*u, *v));
         let comp_idx = con.get_comp_idx(*u);
@@ -74,11 +74,11 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
     return (c_tree, last_occ);
 }
 
-fn sorted_edge_list(children: &Vec<Vec<usize>>, weights: &Vec<Vec<Weight>>) -> Vec<(Weight, (usize, usize))>{
+fn sorted_edge_list(children: &Vec<Vec<usize>>, weights: &Vec<Vec<Weight>>) -> Vec<(Weight, (usize, usize, usize))>{
     let mut edge_lst = Vec::new();
     for i in 0..children.len() {
         for j in 0..children[i].len() {
-            edge_lst.push((weights[i][j],(i,children[i][j])));
+            edge_lst.push((weights[i][j],(i, children[i][j], j)));      //the index j of the child of i is needed for avoiding hashmaps 
         }
     }
     return w_rdxsort(edge_lst);

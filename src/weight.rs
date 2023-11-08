@@ -67,22 +67,22 @@ impl Ord for Weight {
     }
 }
 
-pub fn w_rdxsort(inp: Vec<(Weight,(usize, usize))>) -> Vec<(Weight,(usize, usize))> {
-    let mut arr: Vec<(i64,usize,usize)> = Vec::new();
+pub fn w_rdxsort(inp: Vec<(Weight, (usize, usize, usize))>) -> Vec<(Weight, (usize, usize, usize))> {
+    let mut arr: Vec<(i64,(usize,usize),usize)> = Vec::new();   //the only reason for using tuples here is, so that the rdxsort crate works ;)
     for w in inp.iter() {
         match *w {
-            (Val(x),(y,z)) => arr.push((x,y,z)),
-            (Inf,(y,z)) => arr.push((i64::MAX,y,z)),
-            (NInf,(y,z)) => arr.push((i64::MIN,y,z)),
+            (Val(w),(x,y,z)) => arr.push((w,(x,y),z)),
+            (Inf,(x,y,z)) => arr.push((i64::MAX,(x,y),z)),
+            (NInf,(x,y,z)) => arr.push((i64::MIN,(x,y),z)),
         }
     }
     arr.rdxsort();
-    let mut new: Vec<(Weight,(usize,usize))> = Vec::new();
+    let mut new: Vec<(Weight, (usize, usize, usize))> = Vec::new();
     for w in arr.iter() {
         match *w {
-            (i64::MAX,y,z) => new.push((Inf,(y,z))),
-            (i64::MIN,y,z) => new.push((Inf,(y,z))),
-            (x,y,z) => new.push((Val(x),(y,z))),
+            (i64::MAX,(x,y),z) => new.push((Inf,(x,y,z))),
+            (i64::MIN,(x,y),z) => new.push((Inf,(x,y,z))),
+            (w,(x,y),z) => new.push((Val(w),(x,y,z))),
         };
     }
     return new;

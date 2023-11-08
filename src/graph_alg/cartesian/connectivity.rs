@@ -95,7 +95,7 @@ impl Cluster {
 ///
 /// # Notes
 /// This version is still using HashMaps as it is more convenient and more space-efficient. Later
-/// versions might use Vectors instead, to achieve the theoretival lower bound.
+/// versions might use Vectors instead, to achieve the theoretical lower bound.
 ///
 /// # Sources
 /// used 'S. Alstrup and M. Spork. Optimal on-line decremental connectivity in trees.' as reference
@@ -190,7 +190,12 @@ impl Connectivity {
     }
 
     pub fn get_comp_idx(&self, u: usize) -> usize {
-        //println!("for u: {} we have CompID: {:?}", u, self.get_comp_id(u));
+        // println!("for u: {} we have CompID: {:?}", u, self.get_comp_id(u));
+        // print!("[");
+        // for (id, idx) in self.comp_mapping.iter() {
+        //     print!("({:?},{}) ", id, idx);
+        // }
+        // println!("]");
         return *self.comp_mapping.get(&self.get_comp_id(u)).unwrap();
     }
 
@@ -460,7 +465,7 @@ pub fn normalize(nodes: &mut Vec<Node>, root: usize) -> HashMap<(usize,usize),(u
         }
         let first_added = nodes.len();
         for i in 1..nodes[current].children.len() {
-            let child = nodes[current].children[i];
+            let child = nodes[current].children[i];         //knowing the index i might be usefull later on
             edge_map.insert((current, child), (nodes.len(), child));
             nodes[child].parent = nodes.len();
             let tmp = Node::new(nodes.len()-1, vec![child, nodes.len()+1]);
