@@ -52,7 +52,7 @@ fn main() {
     delta.push(vec![]);
 
     let start = Instant::now();
-    let n = 12;
+    let n = 30;
     let mut enumerate = Enumerate::new(delta, n);
     let duration = start.elapsed();
     println!("time needed for initialisation: {:?}", duration);
