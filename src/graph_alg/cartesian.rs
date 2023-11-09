@@ -35,7 +35,17 @@ pub fn cartesian_on_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weight
     let mut last_occ: Vec<usize> = vec![0; parent.len()];
     
     let edge_lst = sorted_edge_list(children, weights);
+    print!("[");
+        for cluster in con.clusters.iter() {
+            println!("{:?}", cluster.nodes);
+        }
+        println!("]");
     for (weight,(u,v,_idx)) in edge_lst.iter() {
+        // print!("[");
+        // for (id, idx) in con.comp_mapping.iter() {
+        //     print!("({:?},{}) ", id, idx);
+        // }
+        // println!("]");
         let len = c_tree.len();
         let mut tmp = Node::new(len, None, None, *weight, (*u, *v));
         let comp_idx = con.get_comp_idx(*u);

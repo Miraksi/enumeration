@@ -65,12 +65,6 @@ fn main() {
     println!("time needed for enumerating {count} words: {:?}", duration);
 }
 
-    // delta.push(HashMap::from([('a', 1)]));
-    // delta.push(HashMap::from([('a', 2), ('b', 4)]));
-    // delta.push(HashMap::from([('a', 3), ('b', 5)]));
-    // delta.push(HashMap::from([('a', 3), ('b', 0)]));
-    // delta.push(HashMap::from([('a', 6)]));
-    // delta.push(HashMap::from([('a', 6)]));
-    // delta.push(HashMap::from([]));
+
 
 
