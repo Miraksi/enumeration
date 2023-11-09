@@ -75,13 +75,6 @@ fn to_beq_tree(parent: &Vec<usize>, children: &Vec<Vec<usize>>, weights: &Vec<We
             beq_weights.push(vec![weights[child]]);
         }
     }
-    for i in 0..beq_children.len() {
-        print!("{i}: ");
-        for edge in beq_children[i].iter() {
-            print!("{edge}, ");
-        }
-        println!("");
-    }
     return (beq_parent, beq_children, beq_weights);
 }
 fn calc_depth(edge_list: &Vec<Vec<usize>>, depth: &mut Vec<usize>, curr: usize, curr_depth: usize) {
@@ -152,13 +145,6 @@ impl DefaultGraph {
             mapping: vec![None; delta.len()],
         };
         new.rev_default_edges = reverse_edges(&new.default_edges);
-        // for i in 0..new.rev_default_edges.len() {
-        //     print!("{i}: ");
-        //     for edge in new.rev_default_edges[i].iter() {
-        //         print!("{edge}, ");
-        //     }
-        //     println!("");
-        // }
         new.compute_default_components();
         return new;
     }
@@ -209,16 +195,6 @@ impl DefaultGraph {
                 return_list[x] = edges;
             }
         }
-
-        println!("Independent tree:");
-        for i in 0..return_list.len() {
-            print!("{i} mapping of {}: ", comp_mapping[i]);
-            for edge in return_list[i].iter() {
-                print!("{edge}, ");
-            }
-            println!("");
-        }
-
         return Tree::new(return_list, comp_mapping, &self.lq);
     }
 

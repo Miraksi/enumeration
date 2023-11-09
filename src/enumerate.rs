@@ -23,12 +23,12 @@ pub struct Enumerate {
 }
 
 impl Enumerate {
-    pub fn new(delta: Vec<Vec<(char, usize)>>) -> Self {
+    pub fn new(delta: Vec<Vec<(char, usize)>>, n: usize) -> Self {
         let pmn = PathMaxNode::new(&delta);
         Self {
             delta: delta,
             pmn: pmn,
-            n: 0,
+            n: n,
             stack_s: Vec::new(),
         }
     }

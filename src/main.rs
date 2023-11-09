@@ -52,15 +52,15 @@ fn main() {
     delta.push(vec![]);
 
     let start = Instant::now();
-    let mut enumerate = Enumerate::new(delta);
+    let n = 12;
+    let mut enumerate = Enumerate::new(delta, n);
     let duration = start.elapsed();
     println!("time needed for initialisation: {:?}", duration);
     enumerate.pmn.show();
     println!("-----------------------------------");
-    enumerate.set_n(12);
     let start = Instant::now();
     let mut count = 0;
-    enumerate.recurse(' ', 0, 12, 0, &mut count, /*&mut Instant::now()*/);
+    enumerate.recurse(' ', 0, n, 0, &mut count, /*&mut Instant::now()*/);
     let duration = start.elapsed();
     println!("time needed for enumerating {count} words: {:?}", duration);
 }

@@ -114,23 +114,10 @@ pub struct Connectivity {
 }
 impl Connectivity {
     pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
-        // println!("from: root: {}, parent: {:?}", root, parent);
         let mut nodes: Vec<Node> = compute_node_list(parent, children, root);
-
-        // println!("Before:");
-        // for node in nodes.iter() {
-        //     print!("{:?}, ",node);
-        // }
-        // println!("");
-
         let mapping = normalize(&mut nodes, root);
         let n = nodes.len();
         let z = log_floor(n as u32);
-
-        println!("After:");
-        for i in 0..nodes.len() {
-            println!("{i}: {:?}, ",nodes[i].children);
-        }
 
         let mut tmp = Connectivity{
             root: root,
@@ -149,7 +136,6 @@ impl Connectivity {
         tmp.collect_cluster(0, &list);
         tmp.fill_clusters();
         tmp.even_shil = EvenShil::new(tmp.build_macro_forest());
-        println!("Connectivity initialized!\n");
         return tmp;
     }
 
@@ -173,7 +159,6 @@ impl Connectivity {
     }
 
     pub fn delete(&mut self, u: usize, v: usize) {
-        println!("delete({u},{v})");
         let (u,v) = self.get_bin_edge(u,v);
 
         if self.cluster_mapping[u] != self.cluster_mapping[v] {
@@ -206,8 +191,6 @@ impl Connectivity {
     }
 
     pub fn get_comp_idx(&mut self, u: usize) -> usize {  //can add components
-        // println!("compid of 10: {:?}", self.get_comp_id(10));
-        // println!("for u: {} we have CompID: {:?}", u, self.get_comp_id(u));
         let id = self.get_comp_id(u);
         return match self.comp_mapping.get(&id) {
             None => {
@@ -277,16 +260,13 @@ impl Connectivity {
         for i in self.nodes[root].children.clone().iter() {
             let (w, tmp) = self.cluster(*i, z, links);
             links = tmp;
-            //println!("root: {root}, tdeg[v]: {}, size[v]: {}  \tchild: {}, tdeg[w]: {}, size[w]: {}",links.tdeg[v], links.size[v], links.sets[w], links.tdeg[w], links.size[w]);
             if links.tdeg[v] + links.tdeg[w] <= 4 && links.size[v] + links.size[w] <= z {
                 links.tdeg[v] = (links.tdeg[v] + links.tdeg[w]) - 2;
                 links.size[v] += links.size[w];
                 links.next[links.last[v]] = Some(w);
                 links.last[v] = links.last[w];
-                //println!("root: {root}, next[v]: {:?} last[v]: {}", links.sets[links.next[v].unwrap()], links.sets[w]);
             }
             else {
-                //println!("for root {root}, collect: {}",links.sets[w]);
                 self.collect_cluster(w, &links);
             }
         }
