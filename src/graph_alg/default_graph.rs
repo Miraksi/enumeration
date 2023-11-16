@@ -108,7 +108,7 @@ fn weigh_cycle(nodes: &Vec<usize>, lq: &Vec<Vec<(char, Weight, usize)>>) -> Vec<
     let mut weights: Vec<Weight> = Vec::new();
     for i in 0..2*len {
         if let Some((_,x,_)) = lq[nodes[i % len]].get(1) {
-            weights.push(Val(i as i64) - *x ); // change lq to use Weight as well
+            weights.push(-Val(i as i64) - *x ); // change lq to use Weight as well
         }
         else {
             weights.push(Inf);
