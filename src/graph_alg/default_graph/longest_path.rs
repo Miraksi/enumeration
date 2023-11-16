@@ -1,6 +1,5 @@
 use crate::graph_alg::{tarjan::Tarjan, toposort::Toposort};
 use rdxsort::*; //TODO test if its actually fast
-use std::collections::HashMap;
 use crate::weight::{Weight, Weight::*};
 
 
@@ -18,32 +17,32 @@ enum Color {
 /// transition beeing to q'.
 ///
 /// # Complexity
-/// O(|V| + |E|) instead of O(|V| * sigma) since we use a HashMap as input
+/// O(|V| + |E|) instead of O(|V| * sigma) (does this still hold after the changes?)
 ///
 /// # Sources
 /// Lemma 2 of 'D. Adamson, F. Manea and P. Gawrychowski. Enumerating Prefix-Closed Regular Languages with Constant Delay'
-pub fn compute_longest_pairs(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<(char,Weight)>> { //Lq
+pub fn compute_longest_pairs(delta: &Vec<Vec<(char, usize)>>) -> Vec<Vec<(char, Weight, usize)>> { //Lq
     let edges = compute_edge_list(&delta);
     let pi = compute_pi(&edges);
-    let mut triple_list: Vec<(u32, char, usize)> = Vec::new(); // (pi(q'), a, q) instead of (q, pi(q'), a)
+    let mut tuple_list: Vec<(u32, char, (usize, usize))> = Vec::new(); // (pi(q'), a, (q, q')) instead of (q, pi(q'), a) to avoid having to use hashmaps. the tupel 
     for q in 0..delta.len() {
         for (a, q_next) in delta[q].iter() {
-            triple_list.push((pi[*q_next], *a, q));
+            tuple_list.push((pi[*q_next], *a, (q, *q_next)));
         }
     }
-    triple_list.rdxsort();
-    let mut longest_pairs: Vec<Vec<(char,Weight)>> = vec![Vec::new(); delta.len()];
-    for (length, a, q) in triple_list.iter().rev() {
+    tuple_list.rdxsort();
+    let mut longest_pairs: Vec<Vec<(char, Weight, usize)>> = vec![Vec::new(); delta.len()];
+    for (length, a, (q, q_next)) in tuple_list.iter().rev() {
         let tmp = match *length {
-            INFTY => (*a, Inf),
-            _ => (*a, Val((length + 1) as i64)),
+            INFTY => (*a, Inf, *q_next),
+            _ => (*a, Val((length + 1) as i64), *q_next),
         };
         longest_pairs[*q].push(tmp);
     }
     return longest_pairs;
 }
 
-fn compute_edge_list(delta: &Vec<HashMap<char, usize>>) -> Vec<Vec<usize>> {
+fn compute_edge_list(delta: &Vec<Vec<(char, usize)>>) -> Vec<Vec<usize>> {
     let mut edges: Vec<Vec<usize>> = vec![Vec::new(); delta.len()];
     for p in 0..delta.len() {
         for (_a, q) in delta[p].iter() {

@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 #[derive(Clone,Debug)]
 pub struct Node {
     pub adjacent: Vec<usize>,
@@ -19,10 +17,6 @@ impl Node {
 /// The preprocessing phase runs in O(n) time, where n is the the number of vertecies in the forest.
 /// Deletion runs in O(log n) and checking for connectivity runs in O(1) time.
 ///
-/// # Note
-/// This version is still using HashSets as it is more convenient and in practice works just fine.
-/// Later versions will change that, to achieve the theoretical complexity
-///
 /// # Sources
 /// used Wikipedia as reference: <https://en.wikipedia.org/wiki/Dynamic_connectivity>
 #[derive(Debug)]
@@ -30,6 +24,8 @@ pub struct EvenShil {
     forest: Vec<Node>,
     component: Vec<usize>,
     count: usize,
+    visited: Vec<usize>,
+    dfs_id: usize,
 }
 impl EvenShil {     //expects the parent of a root to be itself
     pub fn new(forest: Vec<Node>) -> Self {   
@@ -38,6 +34,8 @@ impl EvenShil {     //expects the parent of a root to be itself
             forest: forest,
             component: vec![0;n],
             count: 0,
+            visited: vec![0;n],
+            dfs_id: 1,
         };
         tmp.component = tmp.calc_component();
         return tmp;
@@ -47,24 +45,26 @@ impl EvenShil {     //expects the parent of a root to be itself
         return self.component[u] == self.component[v];
     }
 
-    pub fn delete(&mut self, u: usize, v: usize) {
+    pub fn delete(&mut self, u: usize, v: usize) { // TODO new version still needs testing
         if self.component[u] != self.component[v] {
             return;
         }
 
         let mut queue: Vec<usize> = Vec::new();
-        let mut visited: HashSet<usize> = HashSet::new();
+
         if self.is_smaller(u,v) {
             queue.push(u);
-            visited.insert(v);
+            self.dfs_id += 1;
+            self.visited[v] = self.dfs_id;
         }
         else {
             queue.push(v);
-            visited.insert(u);
+            self.dfs_id += 1;
+            self.visited[u] = self.dfs_id;
         }
         while !queue.is_empty() {
             let current = queue[0];
-            self.dfs_step(&mut queue, &mut visited);
+            self.dfs_step(&mut queue, self.dfs_id);
             self.component[current] = self.count;
         }
         self.count += 1;
@@ -97,25 +97,30 @@ impl EvenShil {     //expects the parent of a root to be itself
         return comp;
     }
 
-    fn is_smaller(&self, u: usize, v: usize) -> bool {
+    fn is_smaller(&mut self, u: usize, v: usize) -> bool {
         let mut u_queue: Vec<usize> = vec![u];
-        let mut u_visited: HashSet<usize> = HashSet::from([v]);
+        let u_id = self.dfs_id;
+        self.visited[v] = u_id;
+        self.dfs_id += 1;
+
         let mut v_queue: Vec<usize> = vec![v];
-        let mut v_visited: HashSet<usize> = HashSet::from([u]);
+        let v_id = self.dfs_id;
+        self.visited[u] = v_id;
+        self.dfs_id += 1;        
 
         while !u_queue.is_empty() && !v_queue.is_empty() {
-            self.dfs_step(&mut u_queue, &mut u_visited);
-            self.dfs_step(&mut v_queue, &mut v_visited);
+            self.dfs_step(&mut u_queue, u_id);
+            self.dfs_step(&mut v_queue, v_id);
         }
         return u_queue.is_empty();
     }
 
-    fn dfs_step(&self, queue: &mut Vec<usize>, visited: &mut HashSet<usize>) {
+    fn dfs_step(&mut self, queue: &mut Vec<usize>, dfs_id: usize) {
         let u = queue.pop().unwrap();
         let comp = self.component[u];
-        visited.insert(u);
+        self.visited[u] = dfs_id;
         for v in self.forest[u].adjacent.iter() {
-            if visited.contains(v) || self.component[*v] != comp{
+            if self.visited[*v] == dfs_id || self.component[*v] != comp {
                 continue;
             }
             queue.push(*v);

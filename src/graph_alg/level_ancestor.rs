@@ -213,6 +213,9 @@ impl LevelAncestor {
     }
 
     pub fn level_ancestor(&self, p: usize, l: usize) -> usize {
+        if l == 0 {
+            return p;
+        }
         let nearest_jump = self.nodes[p].nearest_jump;
         let d: i64 = self.get_depth(nearest_jump) as i64 - self.get_depth(p) as i64;
         if d >= 0 {

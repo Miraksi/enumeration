@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use crate::graph_alg::default_graph::{DefaultGraph, CompType};
 use crate::weight::Weight;
 
@@ -14,7 +13,7 @@ pub struct PathMaxNode {
 }
 
 impl PathMaxNode {
-    pub fn new(delta: &Vec<HashMap<char, usize>>) -> Self {
+    pub fn new(delta: &Vec<Vec<(char, usize)>>) -> Self {
         Self {
             d_graph: DefaultGraph::new(delta),
         }

@@ -1,7 +1,6 @@
 pub mod path_max_node;
 
 use path_max_node::PathMaxNode;
-use std::collections::HashMap;
 use crate::weight::Weight::*;
 use std::collections::VecDeque;
 
@@ -17,19 +16,19 @@ use std::time::Instant;
 /// # Sources 
 /// Main algorithm of 'D. Adamson, F. Manea and P. Gawrychowski. Enumerating Prefix-Closed Regular Languages with Constant Delay'
 pub struct Enumerate {
-    delta: Vec<HashMap<char, usize>>,
+    delta: Vec<Vec<(char, usize)>>,
     pub pmn: PathMaxNode,
     n: usize,
     stack_s: Vec<(char,usize,usize)>,
 }
 
 impl Enumerate {
-    pub fn new(delta: Vec<HashMap<char, usize>>) -> Self {
+    pub fn new(delta: Vec<Vec<(char, usize)>>, n: usize) -> Self {
         let pmn = PathMaxNode::new(&delta);
         Self {
             delta: delta,
             pmn: pmn,
-            n: 0,
+            n: n,
             stack_s: Vec::new(),
         }
     }
@@ -53,11 +52,10 @@ impl Enumerate {
         let mut u: VecDeque<((usize,usize),usize,usize)> = VecDeque::new(); //6
         if let Some((p,d)) = self.pmn.get(q,l) { //7
             // println!("PathMaxNode({q},{l}) = ({p},{d})");
-            let (b,w) = self.pmn.d_graph.lq[p][1];  //10
+            let (b, w, new_p) = self.pmn.d_graph.lq[p][1];  //10
             if Val(d as i64) + w >= Val(l as i64) {     //8
-                u.push_back(((q,l),q,0)); //9
-                let new_p = self.delta[p].get(&b).unwrap();
-                last = (b, *new_p, l-d-1);   //11
+                u.push_back(((q, l), q, 0)); //9
+                last = (b, new_p, l-d-1);   //11
             }
             else {  //12
                 self.remove_this_call();    //13
@@ -92,12 +90,11 @@ impl Enumerate {
             if ((s,j),q,h) != ((q,l),q,0) { //20
                 x = 1;  //21                //second element
             }
-            while let Some((b,g)) = self.pmn.d_graph.lq[next_q].get(x) {    //TODO change this to for each loop
+            while let Some((b, g, branch)) = self.pmn.d_graph.lq[next_q].get(x) {    //TODO change this to for each loop
                 // println!("h+f+g+1 = {:?}", Val(h as i64) + Val(f as i64) + *g + Val(1));
                 if Val(h as i64) + Val(f as i64) + *g + Val(1) < Val(l as i64) {
                     break;
                 }
-                let branch = self.delta[next_q].get(b).unwrap();
                 self.recurse(*b, *branch, l - h - f - 1, indent + 1, count, /*timing*/);
                 // set the top element of S to the element pointed by the top element of C
                 x += 1;

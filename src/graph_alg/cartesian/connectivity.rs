@@ -7,7 +7,7 @@ mod even_shil;
 
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-enum CompID {
+pub enum CompID {   //not supposed to be public
     Macro(usize),
     Micro(usize, usize)
 }
@@ -69,7 +69,7 @@ impl LinkedListSet {
 
 pub struct Cluster {
     root: usize,
-    nodes: Vec<usize>,
+    pub nodes: Vec<usize>, //not supposed to be public
     bounds: Vec<usize>,
     edge_map: HashMap<(usize, usize), usize>,
     current_edges: usize,
@@ -95,7 +95,7 @@ impl Cluster {
 ///
 /// # Notes
 /// This version is still using HashMaps as it is more convenient and more space-efficient. Later
-/// versions might use Vectors instead, to achieve the theoretival lower bound.
+/// versions might use Vectors instead, to achieve the theoretical lower bound.
 ///
 /// # Sources
 /// used 'S. Alstrup and M. Spork. Optimal on-line decremental connectivity in trees.' as reference
@@ -109,11 +109,11 @@ pub struct Connectivity {
     pub even_shil: EvenShil,
     pub macro_mapping: Vec<Option<usize>>,
     pub comp_list: Vec<Component>,
-    comp_mapping: HashMap<CompID, usize>,  //TODO rewrite this to not need a HashMap
+    pub comp_mapping: HashMap<CompID, usize>,  //not supposed to be public
+    comp_indices: Vec<usize>,       //needed for sanity check
 }
 impl Connectivity {
     pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
-        // println!("from: root: {}, parent: {:?}", root, parent);
         let mut nodes: Vec<Node> = compute_node_list(parent, children, root);
         let mapping = normalize(&mut nodes, root);
         let n = nodes.len();
@@ -130,6 +130,7 @@ impl Connectivity {
             macro_mapping: vec![None; n],
             comp_list: vec![Component::new()],
             comp_mapping: HashMap::from([(CompID::Macro(0), 0)]),
+            comp_indices: vec![0; n],
         };
         let (_, list) = tmp.cluster(root, z as usize, LinkedListSet::new());
         tmp.collect_cluster(0, &list);
@@ -189,9 +190,16 @@ impl Connectivity {
         return CompID::Micro(cluster, identifier); //this should be unique for every connected component
     }
 
-    pub fn get_comp_idx(&self, u: usize) -> usize {
-        //println!("for u: {} we have CompID: {:?}", u, self.get_comp_id(u));
-        return *self.comp_mapping.get(&self.get_comp_id(u)).unwrap();
+    pub fn get_comp_idx(&mut self, u: usize) -> usize {  //can add components
+        let id = self.get_comp_id(u);
+        return match self.comp_mapping.get(&id) {
+            None => {
+                let idx = self.comp_indices[u];
+                self.comp_mapping.insert(id, idx);
+                idx
+            },
+            Some(x) => *x,
+        };
     }
 
     fn macro_connected(&self, u: usize, v: usize) -> bool {
@@ -252,16 +260,13 @@ impl Connectivity {
         for i in self.nodes[root].children.clone().iter() {
             let (w, tmp) = self.cluster(*i, z, links);
             links = tmp;
-            //println!("root: {root}, tdeg[v]: {}, size[v]: {}  \tchild: {}, tdeg[w]: {}, size[w]: {}",links.tdeg[v], links.size[v], links.sets[w], links.tdeg[w], links.size[w]);
             if links.tdeg[v] + links.tdeg[w] <= 4 && links.size[v] + links.size[w] <= z {
                 links.tdeg[v] = (links.tdeg[v] + links.tdeg[w]) - 2;
                 links.size[v] += links.size[w];
                 links.next[links.last[v]] = Some(w);
                 links.last[v] = links.last[w];
-                //println!("root: {root}, next[v]: {:?} last[v]: {}", links.sets[links.next[v].unwrap()], links.sets[w]);
             }
             else {
-                //println!("for root {root}, collect: {}",links.sets[w]);
                 self.collect_cluster(w, &links);
             }
         }
@@ -401,10 +406,12 @@ impl Connectivity {
         let len = self.comp_list.len();
         
         if !self.comp_mapping.contains_key(&u_comp) {
-            self.comp_mapping.insert(u_comp, len);
+                self.comp_mapping.insert(u_comp, len);
+                self.comp_indices[u] = len;
         }
         if !self.comp_mapping.contains_key(&v_comp) {
             self.comp_mapping.insert(v_comp, len);
+            self.comp_indices[u] = len;
         }
         self.comp_list.push(Component::new());
     }
@@ -460,7 +467,7 @@ pub fn normalize(nodes: &mut Vec<Node>, root: usize) -> HashMap<(usize,usize),(u
         }
         let first_added = nodes.len();
         for i in 1..nodes[current].children.len() {
-            let child = nodes[current].children[i];
+            let child = nodes[current].children[i];         //knowing the index i might be usefull later on
             edge_map.insert((current, child), (nodes.len(), child));
             nodes[child].parent = nodes.len();
             let tmp = Node::new(nodes.len()-1, vec![child, nodes.len()+1]);
