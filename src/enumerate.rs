@@ -32,9 +32,6 @@ impl Enumerate {
             stack_s: Vec::new(),
         }
     }
-    pub fn set_n(&mut self, n: usize) {
-        self.n = n;
-    }
 
     pub fn recurse(&mut self, a: char, q: usize, l: usize, indent: usize, count: &mut usize, /*timing: &mut Instant*/) {
         // println!("called with a: {a}, q: {q}, l: {l}");
