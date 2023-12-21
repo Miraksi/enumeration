@@ -60,7 +60,8 @@ fn main() {
     println!("-----------------------------------");
     let start = Instant::now();
     let mut count = 0;
-    enumerate.recurse(' ', 0, n, 0, &mut count, /*&mut Instant::now()*/);
+    let mut stack_s = Vec::new();
+    enumerate.recurse(' ', 0, n, 0, &mut stack_s, &mut count, /*&mut Instant::now()*/);
     let duration = start.elapsed();
     println!("time needed for enumerating {count} words: {:?}", duration);
 }

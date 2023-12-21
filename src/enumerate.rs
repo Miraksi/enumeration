@@ -19,7 +19,6 @@ pub struct Enumerate {
     delta: Vec<Vec<(char, usize)>>,
     pub pmn: PathMaxNode,
     n: usize,
-    stack_s: Vec<(char,usize,usize)>,
 }
 
 impl Enumerate {
@@ -29,13 +28,12 @@ impl Enumerate {
             delta: delta,
             pmn: pmn,
             n: n,
-            stack_s: Vec::new(),
         }
     }
 
-    pub fn recurse(&mut self, a: char, q: usize, l: usize, indent: usize, count: &mut usize, /*timing: &mut Instant*/) {
+    pub fn recurse(&self, a: char, q: usize, l: usize, indent: usize, stack_s: &mut Vec<(char,usize,usize)>, count: &mut usize, /*timing: &mut Instant*/) {
         // println!("called with a: {a}, q: {q}, l: {l}");
-        self.stack_s.push((a,q,l)); //2
+        stack_s.push((a,q,l)); //2
         //push stackframe of this call and top element of stack_s onto stack_c //3
         let ind: String = "\t".repeat(indent);
         //println!("elapsed time: {:?}", timing.elapsed());
@@ -55,12 +53,12 @@ impl Enumerate {
                 last = (b, new_p, l-d-1);   //11
             }
             else {  //12
-                self.remove_this_call();    //13
+                self.remove_this_call(stack_s);    //13
                 return; //14
             }
         }
         else {  //12
-            self.remove_this_call();  //13
+            self.remove_this_call(stack_s);  //13
             return;//14
         }
         while !u.is_empty() {   //16
@@ -87,22 +85,22 @@ impl Enumerate {
             if ((s,j),q,h) != ((q,l),q,0) { //20
                 x = 1;  //21                //second element
             }
-            while let Some((b, g, branch)) = self.pmn.d_graph.lq[next_q].get(x) {    //TODO change this to for each loop
+            let lq_ref = &self.pmn.d_graph.lq[next_q];
+            for (b, g, branch) in lq_ref[x..].iter() {
                 // println!("h+f+g+1 = {:?}", Val(h as i64) + Val(f as i64) + *g + Val(1));
                 if Val(h as i64) + Val(f as i64) + *g + Val(1) < Val(l as i64) {
                     break;
                 }
-                self.recurse(*b, *branch, l - h - f - 1, indent + 1, count, /*timing*/);
+                self.recurse(*b, *branch, l - h - f - 1, indent + 1, stack_s, count, /*timing*/);
                 // set the top element of S to the element pointed by the top element of C
-                x += 1;
             }
         }
-        self.stack_s.pop();
-        self.recurse(last.0, last.1, last.2, indent + 1, count, /*timing*/);
+        stack_s.pop();
+        self.recurse(last.0, last.1, last.2, indent + 1, stack_s, count, /*timing*/);
         return;
     }
 
-    fn remove_this_call(&mut self) {
-        self.stack_s.pop();
+    fn remove_this_call(&self, stack_s: &mut Vec<(char,usize,usize)>) {
+        stack_s.pop();
     }
 }
