@@ -64,14 +64,14 @@ impl Enumerate {
             let (next_q, f) = self.pmn.get(s,j).unwrap(); //17
             if let Some((r,e)) = self.pmn.get(s,f) {    // 18
                 let w_r = self.pmn.d_graph.get_weight(r);
-                if f > 0 && Val(h as i64) + Val(e as i64) + Val(1) + w_r >= Val(l as i64) {
+                if Val(h as i64) + Val(e as i64) + Val(1) + w_r >= Val(l as i64) {
                     u.push_back(((s,f),h));
                 }
             }
             let succ = self.pmn.d_graph.get_succesor(next_q).unwrap();
             if let Some((r,e)) = self.pmn.get(succ, j - f - 1) {   //19 fixed
                 let w_r = self.pmn.d_graph.get_weight(r);
-                if j - f - 1 > 0 && Val(h as i64)+Val(f as i64)+Val(1)+Val(e as i64)+Val(1)+w_r >= Val(l as i64) {
+                if Val(h as i64)+Val(f as i64)+Val(1)+Val(e as i64)+Val(1)+w_r >= Val(l as i64) {
                     u.push_back(((succ, j - f - 1), h + f + 1));
                 }
             }
