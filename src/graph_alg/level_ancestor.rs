@@ -52,10 +52,7 @@ impl LevelAncestor {
         new.compute_jump_points();
         new.compute_micro_table();
         new.compute_micro_hashes();
-        // println!("level_ancestor tree:");
-        // for i in 0..n {
-        //     println!("{i}: {:?}", new.nodes[i].children);
-        // }
+
         return new;
     }
 
@@ -179,8 +176,7 @@ impl LevelAncestor {
         let mut offset: u32 = 0; 
         let mut current = root;
         let mut mapping: Vec<usize> = vec![current];    // to get the mapping afterwards
-        self.nodes[current].micro_tree = micro_tree;
-        self.nodes[current].micro_idx = 0;
+        self.nodes[current].micro_tree = Some(micro_tree);
         self.nodes[current].nearest_jump = nearest_jump;
 
         let mut queue: Vec<usize> = Vec::new();
@@ -195,9 +191,9 @@ impl LevelAncestor {
             else {
                 hash -= 1 << (offset);
                 current = queue.pop().unwrap();
-                self.nodes[current].micro_idx = mapping.len();
+                self.nodes[current].micro_idx = Some(mapping.len());
                 mapping.push(current);
-                self.nodes[current].micro_tree = micro_tree;
+                self.nodes[current].micro_tree = Some(micro_tree);
                 for child in self.get_children(current).rev() {
                     queue.push(*child);
                 }
@@ -217,7 +213,6 @@ impl LevelAncestor {
     }
 
     pub fn level_ancestor(&self, p: usize, l: usize) -> usize {
-        // println!("level_ancestor({p}, {l})");
         if l == 0 {
             return p;
         }
@@ -228,6 +223,10 @@ impl LevelAncestor {
         }
         else if d + l as i64 >= 0 {
             return self.macro_level_ancestor(nearest_jump, (d+l as i64) as usize);
+        }
+        let ladder_len = self.ladders[self.nodes[p].ladder].len();
+        if self.nodes[p].ladder_idx + l < ladder_len {
+            return self.ladders[self.nodes[p].ladder][self.nodes[p].ladder_idx + l];
         }
         else {
             return self.micro_level_ancestor(p, l);
@@ -254,9 +253,11 @@ impl LevelAncestor {
     }
 
     fn micro_level_ancestor(&self, p: usize, l: usize) -> usize {
-        let tree = self.nodes[p].micro_tree;
-        let idx = self.nodes[p].micro_idx;
-        return self.micro_mapping[tree][self.micro_table[tree][idx][l]];
+        if let Some(tree) = self.nodes[p].micro_tree {
+            let idx = self.nodes[p].micro_idx.unwrap();
+            return self.micro_mapping[tree][self.micro_table[tree][idx][l]];
+        }
+        panic!("micro_level_ancestor called on {p} which is not in a micro tree")
     }
 
     #[inline]
@@ -356,8 +357,8 @@ struct Node {
     ladder: usize,
     ladder_idx: usize,
     nearest_jump: usize,  //points to the closest jump node
-    micro_tree: usize,
-    micro_idx: usize,
+    micro_tree: Option<usize>,
+    micro_idx: Option<usize>,
 }
 impl Node {
     fn new(parent: usize, children: Vec<usize>) -> Self {
@@ -368,8 +369,8 @@ impl Node {
             ladder: 0,
             ladder_idx: 0,
             nearest_jump: 0,
-            micro_tree: 0,
-            micro_idx: 0,
+            micro_tree: None,
+            micro_idx: None,
         }
     }
 }
