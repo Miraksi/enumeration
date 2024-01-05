@@ -31,7 +31,7 @@ impl Tree {
             edge_list: edge_list.clone(),
             depth: depth,
             weights: weights,
-            la: LevelAncestor::new(&parent, &edge_list, 0),
+            la: LevelAncestor::new(parent, &edge_list, 0),
             beq: Bottleneck::new(beq_parent, beq_children, beq_weights, 0),
             mapping: mapping,
         };

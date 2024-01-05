@@ -31,8 +31,8 @@ pub struct LevelAncestor {
 }
 
 impl LevelAncestor {
-    pub fn new(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
-        let nodes = compute_node_list(parent, children, root);
+    pub fn new(mut parent: Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Self {
+        let nodes = compute_node_list(&mut parent, children, root);
         let n = nodes.len();
         let k = (log_floor(n as u32)/4) as usize;
         let mut new = Self {
@@ -48,10 +48,14 @@ impl LevelAncestor {
             micro_hashes: Vec::new(),
             micro_mapping: Vec::new(),
         };
-        new.compute_ladders(parent.clone());
+        new.compute_ladders(parent);
         new.compute_jump_points();
         new.compute_micro_table();
         new.compute_micro_hashes();
+        // println!("level_ancestor tree:");
+        // for i in 0..n {
+        //     println!("{i}: {:?}", new.nodes[i].children);
+        // }
         return new;
     }
 
@@ -213,6 +217,7 @@ impl LevelAncestor {
     }
 
     pub fn level_ancestor(&self, p: usize, l: usize) -> usize {
+        // println!("level_ancestor({p}, {l})");
         if l == 0 {
             return p;
         }
@@ -285,7 +290,7 @@ impl LevelAncestor {
     }
 }
 
-fn compute_node_list(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Vec<Node> {   
+fn compute_node_list(parent: &mut Vec<usize>, children: &Vec<Vec<usize>>, root: usize) -> Vec<Node> {   
     let mut list: Vec<Node> = Vec::new();
     for i in 0..parent.len() {
         let node = Node::new(parent[i], children[i].clone());
@@ -293,15 +298,18 @@ fn compute_node_list(parent: &Vec<usize>, children: &Vec<Vec<usize>>, root: usiz
     }
     list[root].parent = root;   //Sets the parent of the root to always be the root
     if list.len() < 16 {
-        tree_padding(&mut list, root);
+        tree_padding(&mut list, parent, root);
     }
     return list;
 }
 
 #[inline]
-fn tree_padding(list: &mut Vec<Node>, root: usize) {
+fn tree_padding(list: &mut Vec<Node>, parent: &mut Vec<usize>, root: usize) {
     while list.len() < 16 {
+        let new_idx = list.len();
+        list[root].children.push(new_idx);
         list.push(Node::new(root, Vec::new()));
+        parent.push(root);
     }
 }
 
