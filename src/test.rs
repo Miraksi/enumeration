@@ -1,106 +1,48 @@
-use std::collections::{HashSet, HashMap};
-use std::ops::{Add,Neg,Sub};
-use std::cmp::{PartialOrd,Ordering};
-use Weight::*;
+let mut delta: Vec<Vec<(char, usize)>> = Vec::new();
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-enum Weight {
-    Val(i64),
-    Inf,
-    NInf,
-}
-impl Add for Weight {
-    type Output = Self;
-    //TODO check if this is a fitting addidtion
-    fn add(self, other: Self) -> Self {
-        match (self, other) {
-            (Val(x), Val(y)) => Weight::Val(x+y),
-            (Inf, Val(_)) => Weight::Inf,
-            (Val(_), Inf) => Weight::Inf,
-            (Inf, Inf) => Weight::Inf,
-            (_,_) => Weight::NInf,
-        }
-    }
-}
-impl Sub for Weight {
-    type Output = Self;
-    //TODO check if this is a fitting addidtion
-    fn sub(self, other: Self) -> Self {
-        return self + (-other);
-    }
-}
-impl Neg for Weight {
-    type Output = Self;
-    //TODO check if this is a fitting addidtion
-    fn neg(self) -> Self {
-        match self{
-            Val(x) => Val(-x),
-            Inf => NInf,
-            NInf => Inf,
-        }
-    }
-}
-impl PartialOrd for Weight {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match (self, other) {
-            (Val(x),Val(y)) => Some(x.cmp(y)),
-            (NInf, NInf) => Some(Ordering::Equal),
-            (NInf, _) => Some(Ordering::Less),
-            (_, NInf) => Some(Ordering::Greater),
-            (Inf,Inf) => Some(Ordering::Equal),
-            (_,Inf) => Some(Ordering::Less),
-            (Inf, _) => Some(Ordering::Greater),
-        }
-    }
-}
-impl Ord for Weight {
-    fn cmp(&self, other: &Self) -> Ordering {
-        match (self, other) {
-            (Val(x),Val(y)) => x.cmp(y),
-            (NInf, NInf) => Ordering::Equal,
-            (NInf, _) => Ordering::Less,
-            (_, NInf) => Ordering::Greater,
-            (Inf,Inf) => Ordering::Equal,
-            (_,Inf) => Ordering::Less,
-            (Inf, _) => Ordering::Greater,
-        }
-    }
-}
-impl RdxSort for Vec<Weight> {
-    fn rdxsort(&mut self) {
-        let mut arr: Vec<i64> = Vec::new();
-        for w in self.iter() {
-            match *w {
-                Val(x) => arr.push(x),
-                Inf => arr.push(i64::MAX),
-                NInf => arr.push(i64::MIN),
-            }
-        }
-        arr.rdxsort();
-        let mut new: Vec<Weight> = Vec::new();
-        for w in arr.iter() {
-            if *w == i64::MAX {
-                new.push(Inf);
-            }
-            else if *w == i64::MIN {
-                new.push(NInf);
-            }
-            else {
-                new.push(Val(*w));
-            }
-        }
-        self = new;
-    }
-}
+// advanced graph
+// delta.push(vec![('a', 1), ('b', 4)]);
+// delta.push(vec![('a', 2)]);
+// delta.push(vec![('b', 1), ('a', 3)]);
+// delta.push(vec![('a', 0)]);
+// delta.push(vec![('b', 5),('a', 9)]);
+// delta.push(vec![('b', 6),('a', 10)]);
+// delta.push(vec![('a', 7),('b', 3)]);
+// delta.push(vec![('a', 8)]);
+// delta.push(vec![('b', 8)]);
+// delta.push(vec![('a', 11),('b', 12)]);
+// delta.push(vec![('a', 13),('b', 14)]);
+// delta.push(vec![('a', 15),('b', 16)]);
+// delta.push(vec![('a', 17),('b', 18)]);
+// delta.push(vec![('a', 19),('b', 20)]);
+// delta.push(vec![('a', 21),('b', 22)]);
+// delta.push(vec![('a', 23)]);
+// delta.push(vec![('a', 23)]);
+// delta.push(vec![('a', 23)]);
+// delta.push(vec![('a', 23)]);
+// delta.push(vec![('a', 23)]);
+// delta.push(vec![('a', 23)]);
+// delta.push(vec![('a', 23)]);
+// delta.push(vec![('a', 23)]);
+// delta.push(vec![]);
 
-
-
-fn main() {
-    let x = Val(-1);
-    let y = Inf;
-    println!("{:?}",x-y);
-    let mut arr = vec![Val(-1), Inf, NInf, Val(3), Val(5), Inf, NInf];
-    arr.sort();
-    println!("{:?}", arr);
-    println!("{:?}", Val(-2) == Val(-2));
-}
+// permutation of 4 elements
+// delta.push(vec![('a', 1), ('b', 2), ('c', 3), ('d', 4)]);
+// delta.push(vec![('b', 5), ('d', 7), ('c', 6)]);
+// delta.push(vec![('d', 9), ('a', 5), ('c', 8)]);
+// delta.push(vec![('b', 8), ('d', 10), ('a', 6)]);
+// delta.push(vec![('b', 9), ('a', 7), ('c', 10)]);
+// delta.push(vec![('d', 12), ('c', 11)]);
+// delta.push(vec![('b', 11), ('d', 13)]);
+// delta.push(vec![('d', 12), ('c', 11)]);
+// delta.push(vec![('a', 12), ('d', 14)]);
+// delta.push(vec![('a', 12), ('c', 14)]);
+// delta.push(vec![('a', 13), ('b', 14)]);
+// delta.push(vec![('d', 15)]);
+// delta.push(vec![('c', 16)]);
+// delta.push(vec![('b', 17)]);
+// delta.push(vec![('a', 18)]);
+// delta.push(Vec::new());
+// delta.push(Vec::new());
+// delta.push(Vec::new());
+// delta.push(Vec::new());
