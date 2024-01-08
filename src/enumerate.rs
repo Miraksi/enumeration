@@ -18,24 +18,28 @@ use std::time::Instant;
 pub struct Enumerate {
     delta: Vec<Vec<(char, usize)>>,
     pub pmn: PathMaxNode,
-    n: usize,
 }
 
 impl Enumerate {
-    pub fn new(delta: Vec<Vec<(char, usize)>>, n: usize) -> Self {
+    pub fn new(delta: Vec<Vec<(char, usize)>>) -> Self {
         let pmn = PathMaxNode::new(&delta);
         Self {
             delta: delta,
             pmn: pmn,
-            n: n,
         }
     }
 
-    pub fn recurse(&self, a: char, q: usize, l: usize, indent: usize, stack_s: &mut Vec<(char,usize,usize)>, count: &mut usize, /*timing: &mut Instant*/) {
+    pub fn start_enumeration(&self, n: usize) -> usize {
+        let mut count = 0;
+        let mut stack_s = Vec::new();
+        self.recurse(' ', 0, n, 0, &mut stack_s, &mut count);
+        
+        return count;
+    }
+
+    fn recurse(&self, a: char, q: usize, l: usize, indent: usize, stack_s: &mut Vec<(char,usize,usize)>, count: &mut usize) {
         stack_s.push((a,q,l)); //2
         // push stackframe of this call and top element of stack_s onto stack_c //3
-        //println!("elapsed time: {:?}", timing.elapsed());
-        //*timing = Instant::now();
         // let ind: String = "\t".repeat(indent);
         // println!("{}Output: ({},{},{},{})",ind,self.n as i64 - l as i64 - 1,a,q,l);   //4
         *count += 1;
@@ -81,7 +85,7 @@ impl Enumerate {
                 if Val(h as i64) + Val(f as i64) + *g + Val(1) < Val(l as i64) {
                     break;
                 }
-                self.recurse(*b, *branch, l - h - f - 1, indent + 1, stack_s, count, /*timing*/);
+                self.recurse(*b, *branch, l - h - f - 1, indent + 1, stack_s, count);
                 // set the top element of S to the element pointed by the top element of C
             }
         }

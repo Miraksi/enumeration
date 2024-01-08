@@ -31,15 +31,13 @@ fn main() {
 
     let start = Instant::now();
     let n = 30;
-    let mut enumerate = Enumerate::new(delta, n);
+    let mut enumerate = Enumerate::new(delta);
     let duration = start.elapsed();
     println!("time needed for initialisation: {:?}", duration);
     enumerate.pmn.show();
     println!("-----------------------------------");
     let start = Instant::now();
-    let mut count = 0;
-    let mut stack_s = Vec::new();
-    enumerate.recurse(' ', 0, n, 0, &mut stack_s, &mut count, /*&mut Instant::now()*/);
+    let count = enumerate.start_enumeration(n);
     let duration = start.elapsed();
     println!("time needed for enumerating {count} words: {:?}", duration);
 }
