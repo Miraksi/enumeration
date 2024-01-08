@@ -30,16 +30,14 @@ fn benchmark_init(c: &mut Criterion) {
     delta.push(vec![('a', 23)]);
     delta.push(vec![('a', 23)]);
     delta.push(vec![]);
-    let enumerate = Enumerate::new(delta.clone(), 45);
+    let enumerate = Enumerate::new(delta.clone());
 
     let mut group = c.benchmark_group("benchmark_init");
     for x in (10..=45).step_by(5) {
         let n: usize = x;
         let mut count = 0;
         group.bench_with_input(BenchmarkId::from_parameter(n), &n, |b, &n| b.iter(|| {
-            count = 0;
-            let mut stack_s = Vec::new();
-            enumerate.recurse(' ', 0, n, 0, &mut stack_s, &mut count, /*&mut Instant::now()*/);
+            count = enumerate.start_enumeration(n);
         }));
         println!("count: {count}");
     }
