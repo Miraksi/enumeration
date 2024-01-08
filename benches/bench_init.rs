@@ -1,7 +1,9 @@
+use std::collections::HashMap;
 use test_implementation::enumerate::Enumerate;
-use std::time::{Duration, Instant};
+use criterion::*;
+use std::time::Duration;
 
-fn main() {
+fn benchmark_init(c: &mut Criterion) {
     let mut delta: Vec<Vec<(char, usize)>> = Vec::new();
 
     delta.push(vec![('a', 1), ('b', 4)]);
@@ -28,20 +30,23 @@ fn main() {
     delta.push(vec![('a', 23)]);
     delta.push(vec![('a', 23)]);
     delta.push(vec![]);
+    let enumerate = Enumerate::new(delta.clone());
 
-    let start = Instant::now();
-    let n = 30;
-    let mut enumerate = Enumerate::new(delta);
-    let duration = start.elapsed();
-    println!("time needed for initialisation: {:?}", duration);
-    enumerate.pmn.show();
-    println!("-----------------------------------");
-    let start = Instant::now();
-    let count = enumerate.start_enumeration(n);
-    let duration = start.elapsed();
-    println!("time needed for enumerating {count} words: {:?}", duration);
+    let mut group = c.benchmark_group("benchmark_init");
+    for x in (10..=45).step_by(5) {
+        let n: usize = x;
+        let mut count = 0;
+        group.bench_with_input(BenchmarkId::from_parameter(n), &n, |b, &n| b.iter(|| {
+            count = enumerate.start_enumeration(n);
+        }));
+        println!("count: {count}");
+    }
 }
 
-
-
-
+criterion_group!{
+    name = benches;
+    // This can be any expression that returns a `Criterion` object.
+    config = Criterion::default().measurement_time(Duration::new(30,0));
+    targets = benchmark_init
+}
+criterion_main!(benches);
