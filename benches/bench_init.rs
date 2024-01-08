@@ -35,18 +35,20 @@ fn benchmark_init(c: &mut Criterion) {
     let mut group = c.benchmark_group("benchmark_init");
     for x in (10..=45).step_by(5) {
         let n: usize = x;
+        let mut count = 0;
         group.bench_with_input(BenchmarkId::from_parameter(n), &n, |b, &n| b.iter(|| {
-            let mut count = 0;
+            count = 0;
             let mut stack_s = Vec::new();
             enumerate.recurse(' ', 0, n, 0, &mut stack_s, &mut count, /*&mut Instant::now()*/);
         }));
+        println!("count: {count}");
     }
 }
 
 criterion_group!{
     name = benches;
     // This can be any expression that returns a `Criterion` object.
-    config = Criterion::default().measurement_time(Duration::new(20,0));
+    config = Criterion::default().measurement_time(Duration::new(30,0));
     targets = benchmark_init
 }
 criterion_main!(benches);
