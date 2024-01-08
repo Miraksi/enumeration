@@ -1,26 +1,4 @@
-mod enumerate;
-mod weight;
-mod my_math;
-pub mod graph_alg;
-
-// use beq::cartesian::connectivity::Connectivity;
-
-// fn main() {
-//     let parent = vec![0];
-//     let children = vec![vec![]];
-//     let con = Connectivity::new(&parent, &children, 0);
-// }
-
-// use beq::lca::LCA;
-
-// fn main() {
-//     let parent = vec![];
-//     let children = vec![];
-//     let tmp = LCA::new(&parent, &children, 0);
-// }
-
-use std::collections::HashMap;
-use enumerate::Enumerate;
+use test_implementation::enumerate::Enumerate;
 use std::time::{Duration, Instant};
 
 fn main() {
