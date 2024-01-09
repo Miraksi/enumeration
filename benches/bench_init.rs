@@ -31,6 +31,34 @@ fn benchmark_circ(c: &mut Criterion) {
     }
 }
 
+fn benchmark_tree(c: &mut Criterion) {
+    let mut delta: Vec<Vec<(char, usize)>> = Vec::new();
+
+    delta.push(vec![('a', 5), ('b', 6),('c', 7),('d', 8),('e', 9)]);
+    delta.push(vec![]);
+    delta.push(vec![('a', 1)]);
+    delta.push(vec![('a', 1)]);
+    delta.push(vec![('a', 1)]);
+    delta.push(vec![('a', 2)]);
+    delta.push(vec![('a', 3)]);
+    delta.push(vec![('a', 3)]);
+    delta.push(vec![('a', 4)]);
+    delta.push(vec![('a', 4)]);
+
+    let mut group = c.benchmark_group("benchmark_tree");
+    for x in 0..10 {
+        let len = delta.len();
+        for i in 0..5 {
+            delta.push(vec![('a', len - i - 1)]);
+            delta[0][i].1 = len + i;
+        }
+        group.bench_with_input(BenchmarkId::from_parameter(delta.len()), &delta, |b, delta| b.iter(|| {
+            Enumerate::new(delta.clone());
+        }));
+        println!("n = {}", delta.len());
+    }
+}
+
 
 fn benchmark_rec(c: &mut Criterion) {
     let mut delta: Vec<Vec<(char, usize)>> = Vec::new();
@@ -75,7 +103,7 @@ fn benchmark_rec(c: &mut Criterion) {
 criterion_group!{
     name = benches;
     // This can be any expression that returns a `Criterion` object.
-    config = Criterion::default().measurement_time(Duration::new(4,0));
-    targets = benchmark_circ
+    config = Criterion::default().measurement_time(Duration::new(5,0));
+    targets = benchmark_tree
 }
 criterion_main!(benches);
