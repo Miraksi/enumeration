@@ -13,6 +13,13 @@ I've also tried to get as close to the theoretical construction and complexity a
 - Decremental Connectivity (O(n), O(1))
 - Even and Shiloach’s algorithm for decremental connectivity
 
+## Usage
+To enumerate the paths on a test-graph, run
+```
+cargo run
+```
+To enumerate the paths of a different graph, build a Enumerate object and start_enumeration() will start the algorithm.
+
 ## Documentation
 To get the html just run 
 ```
